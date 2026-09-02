@@ -3,16 +3,12 @@ import { connectToDatabase } from "./db";
 import { PushSubscription } from "./models/PushSubscription";
 
 const publicVapidKey =
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
-  "BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDnA4A6dE5X1J8fXmS5_q0Y1J9x8y5Z0m6N9F0-K0W7A";
-const privateVapidKey =
-  process.env.VAPID_PRIVATE_KEY || "v8n62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LF";
+  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+const privateVapidKey = process.env.VAPID_PRIVATE_KEY;
 const vapidSubject = process.env.VAPID_SUBJECT || "mailto:admin@evergreen.com";
 
-try {
+if (publicVapidKey && privateVapidKey) {
   webPush.setVapidDetails(vapidSubject, publicVapidKey, privateVapidKey);
-} catch (err) {
-  console.warn("VAPID keys not configured or invalid:", err);
 }
 
 export interface PushNotificationPayload {

@@ -1,7 +1,11 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/evergreen_restaurant";
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  throw new Error("Please define the MONGODB_URI environment variable.");
+}
 
 const UserSchema = new mongoose.Schema({
   name: String,

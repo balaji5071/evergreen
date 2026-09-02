@@ -1,15 +1,18 @@
+import { jwtVerify } from "jose";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { jwtVerify } from "jose";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "evergreen_super_secret_jwt_key_2026_production_ready"
-);
+const JWT_SECRET = process.env.JWT_SECRET;
 
-export async function middleware(request: NextRequest) {
+if (!JWT_SECRET) {
+  throw new Error("Please define the JWT_SECRET environment variable.");
+}
+
+const encodedJwtSecret = new TextEncoder().encode(JWT_SECRET);
+
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Protect all /admin routes by redirecting to /login
   if (pathname.startsWith("/admin")) {
     const token = request.cookies.get("evergreen_token")?.value;
 
@@ -20,11 +23,11 @@ export async function middleware(request: NextRequest) {
     }
 
     try {
-      const { payload } = await jwtVerify(token, JWT_SECRET);
+      const { payload } = await jwtVerify(token, encodedJwtSecret);
       if (payload.role !== "Admin") {
         return NextResponse.redirect(new URL("/login", request.url));
       }
-    } catch (error) {
+    } catch {
       return NextResponse.redirect(new URL("/login", request.url));
     }
   }

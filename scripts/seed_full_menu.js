@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
 
-const MONGODB_URI = "mongodb+srv://balajich058_db_user:M9iCmu957YXCmGdH@evergreen.depbnf8.mongodb.net/";
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  throw new Error("Please define the MONGODB_URI environment variable.");
+}
 
 const CategorySchema = new mongoose.Schema(
   { name: { type: String, required: true }, active: { type: Boolean, default: true } },

@@ -1,10 +1,14 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/evergreen_restaurant";
-
-if (!MONGODB_URI) {
-  throw new Error("Please define the MONGODB_URI environment variable inside .env.local");
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`Please define the ${name} environment variable.`);
+  }
+  return value;
 }
+
+const MONGODB_URI = requireEnv("MONGODB_URI");
 
 interface MongooseCache {
   conn: typeof mongoose | null;
@@ -12,7 +16,6 @@ interface MongooseCache {
 }
 
 declare global {
-  // eslint-disable-next-line no-var
   var mongoose: MongooseCache | undefined;
 }
 

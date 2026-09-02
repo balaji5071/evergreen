@@ -1,6 +1,4 @@
-const publicVapidKey =
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
-  "BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDnA4A6dE5X1J8fXmS5_q0Y1J9x8y5Z0m6N9F0-K0W7A";
+const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
 export async function subscribeUserToPush() {
   if (
@@ -8,6 +6,11 @@ export async function subscribeUserToPush() {
     !("serviceWorker" in navigator) ||
     !("PushManager" in window)
   ) {
+    return null;
+  }
+
+  if (!publicVapidKey) {
+    console.warn("NEXT_PUBLIC_VAPID_PUBLIC_KEY is not configured.");
     return null;
   }
 

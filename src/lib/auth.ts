@@ -4,7 +4,15 @@ import { cookies } from "next/headers";
 import { connectToDatabase } from "./db";
 import { User, IUser } from "./models/User";
 
-const JWT_SECRET = process.env.JWT_SECRET || "evergreen_super_secret_jwt_key_2026_production_ready";
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`Please define the ${name} environment variable.`);
+  }
+  return value;
+}
+
+const JWT_SECRET = requireEnv("JWT_SECRET");
 
 export interface JWTPayload {
   userId: string;
@@ -29,7 +37,7 @@ export function signToken(payload: JWTPayload): string {
 
 export function verifyToken(token: string): JWTPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as JWTPayload;
+    return jwt.verify(token, JWT_SECRET) as unknown as JWTPayload;
   } catch (error) {
     return null;
   }
