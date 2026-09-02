@@ -112,7 +112,7 @@ export default function Navbar() {
           </Link>
 
           {/* Staff / Admin Link */}
-          {(user?.role === "Staff" || user?.role === "Delivery" || user?.role === "Admin") && (
+          {(user?.role === "Staff" || (user?.role as string) === "Delivery" || user?.role === "Admin") && (
             <Link
               href="/staff/dashboard"
               className="hidden lg:flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-[#0C3B2E] text-emerald-200 text-xs font-extrabold hover:bg-emerald-900 transition shadow-sm border border-emerald-700"

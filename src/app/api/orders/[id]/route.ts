@@ -28,7 +28,7 @@ export async function GET(
     if (
       user.role !== "Admin" &&
       user.role !== "Staff" &&
-      user.role !== "Delivery" &&
+      (user.role as string) !== "Delivery" &&
       order.userId.toString() !== user._id.toString()
     ) {
       return NextResponse.json({ message: "Access denied" }, { status: 403 });

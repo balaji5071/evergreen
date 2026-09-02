@@ -6,6 +6,8 @@ export interface IAddress extends Document {
   address: string;
   latitude?: number;
   longitude?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const AddressSchema = new Schema<IAddress>(
