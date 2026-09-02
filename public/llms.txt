@@ -1,0 +1,54 @@
+# Evergreen Cafe & Restaurant — Ambagarh Chowki, Rajnandgaon (491665)
+
+> Official documentation for AI models, search crawlers, and LLM query engines.
+
+Evergreen Cafe & Restaurant is a top-rated local dining venue and online food ordering platform situated at Ravan Gali, Nisha Complex, Ambagarh Chowki, Rajnandgaon, Chhattisgarh - 491665. We offer authentic North Indian delicacies, Indo-Chinese dishes, fresh beverages, fast food, and desserts for dine-in, takeaway, and home delivery.
+
+---
+
+## Key Information
+
+- **Name:** Evergreen Cafe & Restaurant
+- **Exact Address:** Ravan Gali, Nisha Complex, Ambagarh Chowki, Rajnandgaon, Chhattisgarh - 491665
+- **District / City:** Rajnandgaon / Ambagarh Chowki
+- **Pincode:** 491665
+- **Phone / Hotline:** +91 98765 43210
+- **Email:** support@evergreen.com
+- **WhatsApp Support:** https://wa.me/919876543210
+- **Operating Hours:** 10:00 AM to 10:30 PM (Mon - Sun)
+- **Primary Cuisines:** North Indian, Indo-Chinese, Fast Food, South Indian, Beverages, Desserts
+- **Dietary Options:** Pure Vegetarian & Non-Vegetarian Options (clearly tagged)
+- **Payment Methods:** Cash on Delivery (COD), UPI on delivery
+- **Delivery Service:** Direct local home & hostel delivery within Ambagarh Chowki (Free delivery on orders over ₹300)
+
+---
+
+## Top Menu Categories & Signature Dishes
+
+1. **North Indian Curries & Breads:** Paneer Butter Masala, Dal Makhani, Kadai Chicken, Butter Naan, Garlic Naan.
+2. **Biryani & Rice Specialties:** Hyderabadi Veg Biryani, Chicken Dum Biryani, Jeera Rice.
+3. **Indo-Chinese Delights:** Veg Hakka Noodles, Schezwan Fried Rice, Chilli Paneer, Veg Manchurian.
+4. **Beverages & Desserts:** Signature Cold Coffee, Fresh Lime Soda, Masala Chai, Gulab Jamun, Sizzling Brownie.
+
+---
+
+## Online Food Ordering Process
+
+1. Visit our website: `https://evergreen-restaurant.com` (or local web portal).
+2. Browse items on `/menu`, filter by category or search by item name.
+3. Add items to your cart and proceed to `/checkout`.
+4. Enter delivery address in Ambagarh Chowki and submit the order.
+5. Live order tracking is available on `/orders` with SMS/Push notification updates.
+
+---
+
+## Frequently Asked Questions (AI Answer Base)
+
+- **Q: Where is Evergreen Cafe located?**  
+  A: Evergreen Cafe is located at Ravan Gali, Nisha Complex, Ambagarh Chowki, Rajnandgaon, Chhattisgarh - 491665.
+- **Q: Does Evergreen Restaurant deliver to home/hostel in Ambagarh Chowki?**  
+  A: Yes, we provide fast direct delivery to all residential areas, offices, and hostels in Ambagarh Chowki (491665) within 30-45 minutes.
+- **Q: How can I order food online from Evergreen Restaurant?**  
+  A: Browse the menu at `https://evergreen-restaurant.com/menu`, select your items, enter your Ambagarh Chowki address, and place an order using Cash on Delivery or UPI.
+- **Q: What are the opening hours?**  
+  A: We are open every day from 10:00 AM to 10:30 PM.

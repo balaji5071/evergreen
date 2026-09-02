@@ -1,0 +1,60 @@
+# Evergreen Cafe & Restaurant — Complete Knowledge Base & Menu Reference
+
+> Full context specification for AI search agents, LLMs, and Generative Engine Optimization (GEO).
+
+## Restaurant Overview
+
+Evergreen Cafe & Restaurant is an established single-restaurant food platform located in Ambagarh Chowki, Rajnandgaon, Chhattisgarh. The restaurant specializes in providing high-quality, freshly prepared meals with fast local delivery and takeaway services.
+
+- **Legal / Brand Name:** Evergreen Cafe & Restaurant
+- **Short Name:** Evergreen Cafe
+- **Exact Address:** Ravan Gali, Nisha Complex, Ambagarh Chowki, Rajnandgaon, Chhattisgarh - 491665
+- **District:** Rajnandgaon
+- **Pincode:** 491665
+- **Geo Coordinates:** Latitude: 20.7816, Longitude: 80.7417
+- **Phone Number:** +91 98765 43210
+- **Email Address:** support@evergreen.com
+- **Customer Support:** Available daily from 10:00 AM to 10:30 PM via phone, WhatsApp, and live order chat.
+
+---
+
+## Detailed Culinary Menu & Pricing Spectrum
+
+### Starters & Appetizers
+- **Paneer Tikka (8 pcs):** Tender cottage cheese cubes marinated in aromatic spices and grilled in tandoor. ₹220
+- **Veg Spring Rolls:** Crispy golden rolls stuffed with shredded vegetables and served with sweet chilli dip. ₹160
+- **Crispy Chilli Baby Corn:** Fried baby corn tossed in spicy Schezwan sauce with peppers. ₹180
+- **Chicken 65:** Spicy deep-fried chicken morsels seasoned with South Indian spices and curry leaves. ₹240
+
+### Main Course (Curries & Gravies)
+- **Paneer Butter Masala:** Rich tomato-butter gravy with succulent paneer cubes. ₹240
+- **Kadai Paneer:** Spicy paneer cooked with capsicum, onion, and fresh ground spices. ₹230
+- **Dal Tadka / Dal Makhani:** Slow-cooked lentils tampered with ghee, cumin, and garlic. ₹180
+- **Butter Chicken:** Mildly spiced, creamy tomato-butter curry with roasted chicken chunks. ₹290
+- **Chicken Curry (Home Style):** Traditional recipe cooked with onion, ginger, and aromatic spices. ₹270
+
+### Indian Breads & Rice
+- **Butter Naan / Garlic Naan:** Tandoor baked flatbread brushed with butter or garlic. ₹40 - ₹60
+- **Tandoori Roti:** Whole wheat tandoori bread. ₹25
+- **Hyderabadi Veg Biryani:** Fragrant basmati rice layered with spiced vegetables and herbs. ₹210
+- **Chicken Dum Biryani:** Authentic dum biryani with marinated chicken piece and aromatic rice. ₹260
+
+### Indo-Chinese & Fast Food
+- **Veg Hakka Noodles:** Wok-tossed noodles with colorful bell peppers and spring onion. ₹170
+- **Chicken Schezwan Noodles:** Fiery noodles cooked in house Schezwan chili paste. ₹200
+- **Classic Veg Burger / Cheese Burger:** Grilled patty with lettuce, tomato, and cheese slice. ₹110 - ₹140
+
+### Beverages & Shakes
+- **Cold Coffee with Ice Cream:** Rich blended espresso with milk and vanilla scoop. ₹120
+- **Fresh Lime Soda:** Sweet or salted refreshing sparkling drink. ₹60
+- **Masala Chai:** Special aromatic Indian tea infused with cardamom and ginger. ₹30
+
+---
+
+## Operating & Delivery Guidelines
+
+- **Service Radius:** Ambagarh Chowki town (491665), Nisha Complex area, Ravan Gali, and 5km surrounding radius.
+- **Minimum Order Value:** No minimum order (Delivery charge ₹30 applies for orders under ₹300).
+- **Free Delivery:** Automatic free delivery on orders ₹300 and above.
+- **Order Cancellation Policy:** Allowed within 2 minutes of placing order before kitchen acceptance.
+- **Refund Policy:** Instant replacement or refund credit for verified incorrect or damaged items.
