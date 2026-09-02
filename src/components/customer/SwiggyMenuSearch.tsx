@@ -57,6 +57,7 @@ export default function SwiggyMenuSearch({
       return;
     }
 
+    const q = query.toLowerCase().trim();
     const matches = menuItems.filter(
       (item) =>
         item.name?.toLowerCase().includes(q) ||
