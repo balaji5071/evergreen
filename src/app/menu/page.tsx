@@ -30,11 +30,17 @@ export default function MenuPage() {
   const itemsSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Fetch categories
+    // Fetch categories safely
     fetch("/api/menu/categories")
       .then((res) => res.json())
-      .then((data) => setCategories([{ _id: "All", name: "All" }, ...data]))
-      .catch(() => {});
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setCategories([{ _id: "All", name: "All" }, ...data]);
+        } else {
+          setCategories([{ _id: "All", name: "All" }]);
+        }
+      })
+      .catch(() => setCategories([{ _id: "All", name: "All" }]));
   }, []);
 
   useEffect(() => {
@@ -55,21 +61,34 @@ export default function MenuPage() {
     fetch(url)
       .then((res) => res.json())
       .then((data) => {
-        setItems(data);
+        if (Array.isArray(data)) {
+          setItems(data);
+        } else {
+          setItems([]);
+        }
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setItems([]);
+        setLoading(false);
+      });
   }, [selectedCategory, searchQuery]);
 
   const getItemQuantity = (id: string) => {
-    const found = cart.find((c) => c.menuItemId === id);
+    if (!Array.isArray(cart)) return 0;
+    const found = cart.find((c) => c && c.menuItemId === id);
     return found ? found.quantity : 0;
   };
 
   return (
     <div className="flex-1 flex flex-col pb-36 md:pb-16 bg-[#FAF8F5]">
+      {/* Top Banner Carousel right after Navbar */}
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4">
+        <SwiggyBannerCarousel />
+      </div>
+
       {/* Header Container */}
-      <header className="bg-white border-b border-[#E6E2D8]/80 sticky top-[64px] z-30 shadow-xs">
+      <header className="bg-white border-b border-[#E6E2D8]/80 sticky top-[64px] z-30 shadow-xs mt-2">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
@@ -121,9 +140,6 @@ export default function MenuPage() {
 
       {/* Main Content Container - Max 7xl on desktop */}
       <main ref={itemsSectionRef} className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Banner Carousel */}
-        <SwiggyBannerCarousel />
-
         {/* Menu Items Section */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">

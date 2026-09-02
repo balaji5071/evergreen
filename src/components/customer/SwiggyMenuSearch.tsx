@@ -57,12 +57,14 @@ export default function SwiggyMenuSearch({
       return;
     }
 
-    const q = query.toLowerCase().trim();
     const matches = menuItems.filter(
       (item) =>
-        item.name.toLowerCase().includes(q) ||
-        item.description.toLowerCase().includes(q) ||
-        item.categoryId?.name.toLowerCase().includes(q)
+        item.name?.toLowerCase().includes(q) ||
+        item.description?.toLowerCase().includes(q) ||
+        (typeof item.categoryId === "object" &&
+          item.categoryId &&
+          typeof item.categoryId.name === "string" &&
+          item.categoryId.name.toLowerCase().includes(q))
     );
     setFilteredResults(matches);
   }, [query, menuItems]);
