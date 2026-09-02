@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuthUser } from "@/lib/auth";
-import { connectDB } from "@/lib/db";
+import { connectToDatabase } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   try {
-    await connectDB();
+    await connectToDatabase();
     const user = await requireAuthUser();
     if (!user) {
       return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
