@@ -17,13 +17,16 @@ export interface UserData {
 interface AuthContextType {
   user: UserData | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  login: (
+    email: string,
+    password: string
+  ) => Promise<{ success: boolean; message?: string; user?: UserData }>;
   signup: (
     name: string,
     email: string,
     phone: string,
     password: string
-  ) => Promise<{ success: boolean; message?: string }>;
+  ) => Promise<{ success: boolean; message?: string; user?: UserData }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
