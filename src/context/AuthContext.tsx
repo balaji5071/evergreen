@@ -14,19 +14,20 @@ export interface UserData {
   notificationEnabled: boolean;
 }
 
+type AuthResult =
+  | { success: true; user: UserData; message?: string }
+  | { success: false; message?: string; user?: undefined };
+
 interface AuthContextType {
   user: UserData | null;
   loading: boolean;
-  login: (
-    email: string,
-    password: string
-  ) => Promise<{ success: boolean; message?: string; user?: UserData }>;
+  login: (email: string, password: string) => Promise<AuthResult>;
   signup: (
     name: string,
     email: string,
     phone: string,
     password: string
-  ) => Promise<{ success: boolean; message?: string; user?: UserData }>;
+  ) => Promise<AuthResult>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -64,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     fetchUser();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<AuthResult> => {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
@@ -82,7 +83,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signup = async (name: string, email: string, phone: string, password: string) => {
+  const signup = async (
+    name: string,
+    email: string,
+    phone: string,
+    password: string
+  ): Promise<AuthResult> => {
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
