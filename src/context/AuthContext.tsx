@@ -73,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, message: data.message || "Login failed" };
       }
       setUser(data.user);
-      return { success: true };
+      return { success: true, user: data.user };
     } catch (error: any) {
       return { success: false, message: error.message || "Network error" };
     }
@@ -91,7 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, message: data.message || "Signup failed" };
       }
       setUser(data.user);
-      return { success: true };
+      return { success: true, user: data.user };
     } catch (error: any) {
       return { success: false, message: error.message || "Network error" };
     }

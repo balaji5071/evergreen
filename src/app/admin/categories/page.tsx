@@ -12,6 +12,7 @@ export default function AdminCategoriesPage() {
   // Create form state
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [saving, setSaving] = useState(false);
 
   // Edit modal state
@@ -19,6 +20,7 @@ export default function AdminCategoriesPage() {
   const [editingCat, setEditingCat] = useState<any>(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [editImageUrl, setEditImageUrl] = useState("");
   const [editActive, setEditActive] = useState(true);
   const [savingEdit, setSavingEdit] = useState(false);
 
@@ -51,12 +53,13 @@ export default function AdminCategoriesPage() {
       const res = await fetch("/api/menu/categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, description }),
+        body: JSON.stringify({ name, description, imageUrl }),
       });
 
       if (res.ok) {
         setName("");
         setDescription("");
+        setImageUrl("");
         fetchCategoriesAndItems();
       } else {
         const err = await res.json();
@@ -74,6 +77,7 @@ export default function AdminCategoriesPage() {
     setEditingCat(cat);
     setEditName(cat.name || "");
     setEditDescription(cat.description || "");
+    setEditImageUrl(cat.imageUrl || "");
     setEditActive(cat.active !== false);
     setShowEditModal(true);
   };
@@ -90,6 +94,7 @@ export default function AdminCategoriesPage() {
         body: JSON.stringify({
           name: editName,
           description: editDescription,
+          imageUrl: editImageUrl,
           active: editActive,
         }),
       });
@@ -180,7 +185,7 @@ export default function AdminCategoriesPage() {
         className="bg-white p-5 rounded-3xl border border-[#E6E2D8]/80 shadow-card-soft space-y-4"
       >
         <h3 className="font-serif text-base font-bold text-[#0C3B2E]">Add New Category</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <input
             type="text"
             required
@@ -194,6 +199,13 @@ export default function AdminCategoriesPage() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Short description..."
+            className="px-4 py-2.5 rounded-xl border border-[#E6E2D8] bg-slate-50 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
+          />
+          <input
+            type="url"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="Image URL (optional)"
             className="px-4 py-2.5 rounded-xl border border-[#E6E2D8] bg-slate-50 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
           />
         </div>
@@ -326,6 +338,17 @@ export default function AdminCategoriesPage() {
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
                   placeholder="Short description..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2D8] bg-slate-50 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-[#0C3B2E] uppercase">Category Image URL</label>
+                <input
+                  type="url"
+                  value={editImageUrl}
+                  onChange={(e) => setEditImageUrl(e.target.value)}
+                  placeholder="https://..."
                   className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2D8] bg-slate-50 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
                 />
               </div>

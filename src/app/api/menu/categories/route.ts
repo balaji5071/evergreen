@@ -28,7 +28,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Unauthorized. Admin or Staff access required." }, { status: 403 });
     }
 
-    const { name, description, active } = await req.json();
+    const { name, description, imageUrl, active } = await req.json();
     if (!name || !name.trim()) {
       return NextResponse.json({ message: "Category name is required" }, { status: 400 });
     }
@@ -37,6 +37,7 @@ export async function POST(req: Request) {
     const newCategory = await MenuCategory.create({
       name: name.trim(),
       description: description ? description.trim() : "",
+      imageUrl: imageUrl ? imageUrl.trim() : "",
       active: active !== undefined ? Boolean(active) : true,
     });
     return NextResponse.json(newCategory, { status: 201 });

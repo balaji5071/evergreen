@@ -72,11 +72,16 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [user]);
 
-  // Fetch in-app notifications from API
+  // Fetch in-app notifications from API safely
   const fetchNotifications = async () => {
     if (!user) {
       setNotifications([]);
       setUnreadCount(0);
+      return;
+    }
+
+    // Skip polling if document tab is currently hidden/inactive
+    if (typeof document !== "undefined" && document.hidden) {
       return;
     }
 
@@ -116,8 +121,12 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           link: latestNewNotification.link || "/",
         });
       }
-    } catch (e) {
-      console.error("Failed to fetch notifications:", e);
+    } catch (e: any) {
+      // Ignore routine network polling drops or tab switches safely
+      if (e?.name === "AbortError" || e?.message?.includes("Failed to fetch")) {
+        return;
+      }
+      console.warn("Notification polling warning:", e?.message || e);
     }
   };
 
@@ -132,7 +141,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         body: JSON.stringify({ markAll: true }),
       });
     } catch (e) {
-      console.error(e);
+      // Ignore network errors
     }
   };
 
@@ -149,11 +158,11 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         body: JSON.stringify({ notificationId }),
       });
     } catch (e) {
-      console.error(e);
+      // Ignore network errors
     }
   };
 
-  // Auto-polling interval every 4 seconds for logged in user
+  // Auto-polling interval every 6 seconds for logged in user when tab is visible
   useEffect(() => {
     if (!user) return;
 
@@ -161,7 +170,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     const interval = setInterval(() => {
       fetchNotifications();
-    }, 4000);
+    }, 6000);
 
     return () => clearInterval(interval);
   }, [user]);

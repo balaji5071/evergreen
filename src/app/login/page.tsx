@@ -16,30 +16,29 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setError("");
     setLoading(true);
 
-    const res = await login(email, password);
-    setLoading(false);
+    try {
+      const res = await login(email, password);
 
-    if (!res.success) {
-      setError(res.message || "Invalid credentials");
-      return;
+      if (!res.success || !res.user) {
+        setLoading(false);
+        setError(res.message || "Invalid email or password");
+        return;
+      }
+
+      const role = res.user.role;
+      if (role === "Admin" || role === "Staff") {
+        window.location.href = "/staff/dashboard";
+      } else {
+        window.location.href = "/menu";
+      }
+    } catch (err: any) {
+      setLoading(false);
+      setError(err?.message || "Login failed. Please try again.");
     }
-
-    // Check user role
-    fetch("/api/auth/me")
-      .then((r) => r.json())
-      .then((data) => {
-        const role = data?.user?.role;
-        if (role === "Admin" || role === "Staff") {
-          router.push("/staff/dashboard");
-        } else {
-          router.push("/menu");
-        }
-      })
-      .catch(() => router.push("/menu"));
   };
 
   return (
