@@ -55,8 +55,10 @@ export default function MenuPage() {
   const itemsSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     // Fetch categories safely
-    fetch("/api/menu/categories")
+    fetch("/api/menu/categories", { cache: "no-store", signal: controller.signal })
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -65,10 +67,17 @@ export default function MenuPage() {
           setCategories([{ _id: "All", name: "All" }]);
         }
       })
-      .catch(() => setCategories([{ _id: "All", name: "All" }]));
+      .catch((error) => {
+        if (error instanceof Error && error.name === "AbortError") return;
+        setCategories([{ _id: "All", name: "All" }]);
+      });
+
+    return () => controller.abort();
   }, []);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     setLoading(true);
     let url = "/api/menu";
     const params = new URLSearchParams();
@@ -83,7 +92,7 @@ export default function MenuPage() {
       url += `?${params.toString()}`;
     }
 
-    fetch(url)
+    fetch(url, { cache: "no-store", signal: controller.signal })
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -93,10 +102,13 @@ export default function MenuPage() {
         }
         setLoading(false);
       })
-      .catch(() => {
+      .catch((error) => {
+        if (error instanceof Error && error.name === "AbortError") return;
         setItems([]);
         setLoading(false);
       });
+
+    return () => controller.abort();
   }, [selectedCategory, searchQuery]);
 
   const getItemQuantity = (id: string) => {
@@ -146,6 +158,8 @@ export default function MenuPage() {
 
             <div className="w-full sm:w-auto max-w-md">
               <SwiggyMenuSearch
+                query={searchQuery}
+                onQueryChange={setSearchQuery}
                 onSelectTag={(tag) => {
                   setSearchQuery(tag);
                 }}

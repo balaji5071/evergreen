@@ -3,6 +3,8 @@ import { connectToDatabase } from "@/lib/db";
 import { MenuCategory } from "@/lib/models/MenuCategory";
 import { requireStaffOrAdminUser } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -15,9 +17,21 @@ export async function GET(req: Request) {
     }
 
     const categories = await MenuCategory.find(query).sort({ name: 1 });
-    return NextResponse.json(categories);
+    return NextResponse.json(categories, {
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
+    });
   } catch (error) {
-    return NextResponse.json({ message: "Failed to fetch categories" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Failed to fetch categories" },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+        },
+      }
+    );
   }
 }
 

@@ -26,21 +26,33 @@ const POPULAR_TAGS = [
 ];
 
 export default function SwiggyMenuSearch({
+  query: controlledQuery,
+  onQueryChange,
   onSelectTag,
 }: {
+  query?: string;
+  onQueryChange?: (query: string) => void;
   onSelectTag?: (tag: string) => void;
 }) {
   const { cart, addToCart, updateQuantity } = useCart();
 
-  const [query, setQuery] = useState("");
+  const [localQuery, setLocalQuery] = useState("");
   const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
   const [filteredResults, setFilteredResults] = useState<MenuItemType[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const query = controlledQuery ?? localQuery;
+
+  const updateQuery = (nextQuery: string) => {
+    if (controlledQuery === undefined) {
+      setLocalQuery(nextQuery);
+    }
+    onQueryChange?.(nextQuery);
+  };
 
   // Fetch all menu items for instant local searching
   useEffect(() => {
-    fetch("/api/menu")
+    fetch("/api/menu", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -87,7 +99,7 @@ export default function SwiggyMenuSearch({
   };
 
   const handleTagClick = (tagLabel: string) => {
-    setQuery(tagLabel);
+    updateQuery(tagLabel);
     setIsOpen(true);
     if (onSelectTag) onSelectTag(tagLabel);
   };
@@ -103,7 +115,7 @@ export default function SwiggyMenuSearch({
             value={query}
             onFocus={() => setIsOpen(true)}
             onChange={(e) => {
-              setQuery(e.target.value);
+              updateQuery(e.target.value);
               setIsOpen(true);
             }}
             placeholder="Search for 'Biryani', 'Burger', 'Chai', 'Pizza'..."
@@ -112,7 +124,7 @@ export default function SwiggyMenuSearch({
           {query && (
             <button
               onClick={() => {
-                setQuery("");
+                updateQuery("");
                 setFilteredResults([]);
               }}
               className="p-1 rounded-full text-slate-400 hover:text-slate-600 transition"
