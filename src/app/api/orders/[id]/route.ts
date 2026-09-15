@@ -65,16 +65,23 @@ export async function PUT(
     order.orderStatus = orderStatus;
     if (orderStatus === "Delivered") {
       order.paymentStatus = "Completed";
+      order.deliveredAt = new Date();
+      if (!order.deliveredBy) {
+        order.deliveredBy = admin._id;
+      }
     }
 
     if (orderStatus === "Cancelled") {
+      if (!cancelReason?.trim()) {
+        return NextResponse.json({ message: "A cancellation reason is required" }, { status: 400 });
+      }
       order.cancelledBy = {
         userId: admin._id,
         name: admin.name,
         role: admin.role,
       };
       order.cancelledAt = new Date();
-      if (cancelReason) order.cancelReason = cancelReason;
+      order.cancelReason = cancelReason.trim();
     }
 
     await order.save();

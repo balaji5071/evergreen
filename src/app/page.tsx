@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -19,6 +19,8 @@ import {
   CheckCircle2,
   ShieldCheck,
   Award,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import BottomNav from "@/components/customer/BottomNav";
 import PushNotificationPrompt from "@/components/customer/PushNotificationPrompt";
@@ -103,6 +105,275 @@ export default function HomePage() {
     return found ? found.quantity : 0;
   };
 
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(false);
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+  const hasDraggedRef = useRef(false);
+
+  // Auto-move animation refs
+  const isUserInteractingRef = useRef<boolean>(false);
+  const autoMoveTimerRef = useRef<any>(null);
+  const autoMoveDirectionRef = useRef<number>(1);
+  const autoMovePauseRef = useRef<boolean>(false);
+
+  const pauseAutoMoveTemporarily = (durationMs = 2500) => {
+    isUserInteractingRef.current = true;
+    if (autoMoveTimerRef.current) clearTimeout(autoMoveTimerRef.current);
+    autoMoveTimerRef.current = setTimeout(() => {
+      isUserInteractingRef.current = false;
+    }, durationMs);
+  };
+
+  const updateScrollArrows = () => {
+    const el = categoryScrollRef.current;
+    if (!el) return;
+    setShowLeftArrow(el.scrollLeft > 10);
+    setShowRightArrow(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+  };
+
+  // Continuous auto-move loop for categories
+  useEffect(() => {
+    const el = categoryScrollRef.current;
+    if (!el) return;
+
+    let animationFrameId: number;
+    let lastTime = performance.now();
+
+    const animate = (time: number) => {
+      const delta = time - lastTime;
+      lastTime = time;
+
+      if (
+        !isUserInteractingRef.current &&
+        !autoMovePauseRef.current &&
+        el.scrollWidth > el.clientWidth + 10
+      ) {
+        const stepAmount = (36 / 1000) * Math.min(delta, 64);
+        const maxScroll = el.scrollWidth - el.clientWidth;
+
+        if (autoMoveDirectionRef.current === 1) {
+          if (el.scrollLeft >= maxScroll - 2) {
+            autoMovePauseRef.current = true;
+            setTimeout(() => {
+              autoMoveDirectionRef.current = -1;
+              autoMovePauseRef.current = false;
+            }, 1800);
+          } else {
+            el.scrollLeft += stepAmount;
+          }
+        } else {
+          if (el.scrollLeft <= 2) {
+            autoMovePauseRef.current = true;
+            setTimeout(() => {
+              autoMoveDirectionRef.current = 1;
+              autoMovePauseRef.current = false;
+            }, 1800);
+          } else {
+            el.scrollLeft -= stepAmount;
+          }
+        }
+        updateScrollArrows();
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      if (autoMoveTimerRef.current) clearTimeout(autoMoveTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    const el = categoryScrollRef.current;
+    if (!el) return;
+
+    const onScroll = () => updateScrollArrows();
+    const onWheel = (e: WheelEvent) => {
+      if (e.deltaY !== 0 && el.scrollWidth > el.clientWidth) {
+        e.preventDefault();
+        pauseAutoMoveTemporarily(2000);
+        el.scrollLeft += e.deltaY;
+        updateScrollArrows();
+      }
+    };
+
+    el.addEventListener("scroll", onScroll, { passive: true });
+    el.addEventListener("wheel", onWheel, { passive: false });
+
+    updateScrollArrows();
+    const timer = setTimeout(updateScrollArrows, 300);
+    window.addEventListener("resize", updateScrollArrows);
+
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      el.removeEventListener("wheel", onWheel);
+      clearTimeout(timer);
+      window.removeEventListener("resize", updateScrollArrows);
+    };
+  }, []);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const el = categoryScrollRef.current;
+    if (!el) return;
+    isUserInteractingRef.current = true;
+    isDraggingRef.current = true;
+    hasDraggedRef.current = false;
+    startXRef.current = e.pageX - el.offsetLeft;
+    scrollLeftRef.current = el.scrollLeft;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const el = categoryScrollRef.current;
+    if (!isDraggingRef.current || !el) return;
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - startXRef.current) * 1.5;
+    if (Math.abs(walk) > 6) {
+      hasDraggedRef.current = true;
+    }
+    el.scrollLeft = scrollLeftRef.current - walk;
+    updateScrollArrows();
+  };
+
+  const handleMouseUpOrLeave = () => {
+    isDraggingRef.current = false;
+    pauseAutoMoveTemporarily(2500);
+    setTimeout(() => {
+      hasDraggedRef.current = false;
+    }, 100);
+  };
+
+  const scrollCategory = (direction: "left" | "right") => {
+    if (!categoryScrollRef.current) return;
+    pauseAutoMoveTemporarily(3000);
+    const scrollAmount = direction === "left" ? -240 : 240;
+    categoryScrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+  };
+
+  // Quick Filter Badges auto-move & scroll refs
+  const filterBadgesScrollRef = useRef<HTMLDivElement>(null);
+  const isFilterInteractingRef = useRef<boolean>(false);
+  const filterAutoMoveTimerRef = useRef<any>(null);
+  const filterAutoMoveDirectionRef = useRef<number>(1);
+  const filterAutoMovePauseRef = useRef<boolean>(false);
+  const isFilterDraggingRef = useRef<boolean>(false);
+  const filterStartXRef = useRef<number>(0);
+  const filterScrollLeftRef = useRef<number>(0);
+  const filterHasDraggedRef = useRef<boolean>(false);
+
+  const pauseFilterAutoMove = (durationMs = 2500) => {
+    isFilterInteractingRef.current = true;
+    if (filterAutoMoveTimerRef.current) clearTimeout(filterAutoMoveTimerRef.current);
+    filterAutoMoveTimerRef.current = setTimeout(() => {
+      isFilterInteractingRef.current = false;
+    }, durationMs);
+  };
+
+  useEffect(() => {
+    const el = filterBadgesScrollRef.current;
+    if (!el) return;
+
+    let animationFrameId: number;
+    let lastTime = performance.now();
+
+    const animate = (time: number) => {
+      const delta = time - lastTime;
+      lastTime = time;
+
+      if (
+        !isFilterInteractingRef.current &&
+        !filterAutoMovePauseRef.current &&
+        el.scrollWidth > el.clientWidth + 5
+      ) {
+        const stepAmount = (32 / 1000) * Math.min(delta, 64);
+        const maxScroll = el.scrollWidth - el.clientWidth;
+
+        if (filterAutoMoveDirectionRef.current === 1) {
+          if (el.scrollLeft >= maxScroll - 2) {
+            filterAutoMovePauseRef.current = true;
+            setTimeout(() => {
+              filterAutoMoveDirectionRef.current = -1;
+              filterAutoMovePauseRef.current = false;
+            }, 1800);
+          } else {
+            el.scrollLeft += stepAmount;
+          }
+        } else {
+          if (el.scrollLeft <= 2) {
+            filterAutoMovePauseRef.current = true;
+            setTimeout(() => {
+              filterAutoMoveDirectionRef.current = 1;
+              filterAutoMovePauseRef.current = false;
+            }, 1800);
+          } else {
+            el.scrollLeft -= stepAmount;
+          }
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      if (filterAutoMoveTimerRef.current) clearTimeout(filterAutoMoveTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    const el = filterBadgesScrollRef.current;
+    if (!el) return;
+
+    const onWheel = (e: WheelEvent) => {
+      if (e.deltaY !== 0 && el.scrollWidth > el.clientWidth) {
+        e.preventDefault();
+        pauseFilterAutoMove(2000);
+        el.scrollLeft += e.deltaY;
+      }
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+    };
+  }, []);
+
+  const handleFilterMouseDown = (e: React.MouseEvent) => {
+    const el = filterBadgesScrollRef.current;
+    if (!el) return;
+    isFilterInteractingRef.current = true;
+    isFilterDraggingRef.current = true;
+    filterHasDraggedRef.current = false;
+    filterStartXRef.current = e.pageX - el.offsetLeft;
+    filterScrollLeftRef.current = el.scrollLeft;
+  };
+
+  const handleFilterMouseMove = (e: React.MouseEvent) => {
+    const el = filterBadgesScrollRef.current;
+    if (!isFilterDraggingRef.current || !el) return;
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - filterStartXRef.current) * 1.5;
+    if (Math.abs(walk) > 6) {
+      filterHasDraggedRef.current = true;
+    }
+    el.scrollLeft = filterScrollLeftRef.current - walk;
+  };
+
+  const handleFilterMouseUpOrLeave = () => {
+    isFilterDraggingRef.current = false;
+    pauseFilterAutoMove(2500);
+    setTimeout(() => {
+      filterHasDraggedRef.current = false;
+    }, 100);
+  };
+
   return (
     <div className="flex-1 flex flex-col pb-36 md:pb-16 bg-[#FAF8F5]">
       {/* Dynamic Zomato Top Header Strip */}
@@ -166,63 +437,173 @@ export default function HomePage() {
           </div>
 
           {/* Horizontal Scroll Grid of Circular Food Cards */}
-          <div className="flex items-center space-x-4 overflow-x-auto no-scrollbar py-2 px-1">
-            {CATEGORY_COLLECTIONS.map((cat) => (
-              <Link
-                key={cat.name}
-                href={`/menu?category=${encodeURIComponent(cat.name)}`}
-                className="flex flex-col items-center space-y-2 shrink-0 group focus:outline-none cursor-pointer"
-              >
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full p-1 border-2 border-slate-200 group-hover:border-[#0C3B2E] group-hover:scale-105 transition-all duration-300 shadow-sm bg-white relative">
-                  <div className="w-full h-full rounded-full overflow-hidden relative">
-                    <img
-                      src={cat.img}
-                      alt={cat.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
+          <div className="relative group/catrow select-none">
+            {/* Left Arrow Button */}
+            {showLeftArrow && (
+              <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center pl-1 bg-gradient-to-r from-[#FAF8F5] via-[#FAF8F5]/90 to-transparent pr-4 pointer-events-none">
+                <button
+                  type="button"
+                  onClick={() => scrollCategory("left")}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white shadow-md border border-slate-200 text-[#0C3B2E] flex items-center justify-center pointer-events-auto hover:bg-[#0C3B2E] hover:text-white transition-all transform hover:scale-105 active:scale-95"
+                  aria-label="Scroll categories left"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Right Arrow Button */}
+            {showRightArrow && (
+              <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center pr-1 bg-gradient-to-l from-[#FAF8F5] via-[#FAF8F5]/90 to-transparent pl-4 pointer-events-none">
+                <button
+                  type="button"
+                  onClick={() => scrollCategory("right")}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white shadow-md border border-slate-200 text-[#0C3B2E] flex items-center justify-center pointer-events-auto hover:bg-[#0C3B2E] hover:text-white transition-all transform hover:scale-105 active:scale-95"
+                  aria-label="Scroll categories right"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            <div
+              ref={categoryScrollRef}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUpOrLeave}
+              onMouseLeave={handleMouseUpOrLeave}
+              onTouchStart={() => {
+                isUserInteractingRef.current = true;
+              }}
+              onTouchEnd={() => {
+                pauseAutoMoveTemporarily(2500);
+              }}
+              onMouseEnter={() => {
+                isUserInteractingRef.current = true;
+              }}
+              className="flex items-center space-x-4 overflow-x-auto no-scrollbar py-2 px-1 cursor-grab active:cursor-grabbing touch-pan-x"
+              style={{
+                WebkitOverflowScrolling: "touch",
+                touchAction: "pan-x",
+                overscrollBehaviorX: "contain",
+              }}
+            >
+              {CATEGORY_COLLECTIONS.map((cat) => (
+                <Link
+                  key={cat.name}
+                  href={`/menu?category=${encodeURIComponent(cat.name)}`}
+                  onClick={(e) => {
+                    if (hasDraggedRef.current) e.preventDefault();
+                  }}
+                  className="flex flex-col items-center space-y-2 shrink-0 group focus:outline-none cursor-pointer select-none"
+                >
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full p-1 border-2 border-slate-200 group-hover:border-[#0C3B2E] group-hover:scale-105 transition-all duration-300 shadow-sm bg-white relative pointer-events-none">
+                    <div className="w-full h-full rounded-full overflow-hidden relative">
+                      <img
+                        src={cat.img}
+                        alt={cat.name}
+                        draggable={false}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 select-none pointer-events-none"
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="text-center">
-                  <p className="text-xs font-bold text-slate-800 group-hover:text-[#0C3B2E] transition-colors">
-                    {cat.name}
-                  </p>
-                  <p className="text-[9px] text-slate-400 font-semibold">{cat.tag}</p>
-                </div>
-              </Link>
-            ))}
+                  <div className="text-center pointer-events-none select-none">
+                    <p className="text-xs font-bold text-slate-800 group-hover:text-[#0C3B2E] transition-colors">
+                      {cat.name}
+                    </p>
+                    <p className="text-[9px] text-slate-400 font-semibold">{cat.tag}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* Quick Filter Badges */}
-        <section className="flex items-center space-x-2 overflow-x-auto no-scrollbar py-1">
-          <Link
-            href="/menu"
-            className="flex items-center space-x-1.5 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold shrink-0 hover:bg-emerald-100 transition"
+        {/* Quick Filter Badges with Auto-Move */}
+        <section className="relative select-none">
+          <div
+            ref={filterBadgesScrollRef}
+            onMouseDown={handleFilterMouseDown}
+            onMouseMove={handleFilterMouseMove}
+            onMouseUp={handleFilterMouseUpOrLeave}
+            onMouseLeave={handleFilterMouseUpOrLeave}
+            onTouchStart={() => {
+              isFilterInteractingRef.current = true;
+            }}
+            onTouchEnd={() => {
+              pauseFilterAutoMove(2500);
+            }}
+            onMouseEnter={() => {
+              isFilterInteractingRef.current = true;
+            }}
+            className="flex items-center space-x-2.5 overflow-x-auto no-scrollbar py-1 cursor-grab active:cursor-grabbing select-none touch-pan-x"
+            style={{
+              WebkitOverflowScrolling: "touch",
+              touchAction: "pan-x",
+              overscrollBehaviorX: "contain",
+            }}
           >
-            <Leaf className="w-3.5 h-3.5 text-emerald-600 fill-emerald-500" />
-            <span>Pure Veg</span>
-          </Link>
-          <Link
-            href="/menu"
-            className="flex items-center space-x-1.5 px-4 py-2 rounded-full bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold shrink-0 hover:bg-amber-100 transition"
-          >
-            <Flame className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
-            <span>Bestsellers</span>
-          </Link>
-          <Link
-            href="/menu"
-            className="flex items-center space-x-1.5 px-4 py-2 rounded-full bg-sky-50 border border-sky-300 text-sky-900 text-xs font-bold shrink-0 hover:bg-sky-100 transition"
-          >
-            <Zap className="w-3.5 h-3.5 text-sky-600 fill-sky-500" />
-            <span>Under 30 Mins</span>
-          </Link>
-          <Link
-            href="/menu"
-            className="flex items-center space-x-1.5 px-4 py-2 rounded-full bg-rose-50 border border-rose-300 text-rose-900 text-xs font-bold shrink-0 hover:bg-rose-100 transition"
-          >
-            <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
-            <span>4.5+ Top Rated</span>
-          </Link>
+            <Link
+              href="/menu"
+              onClick={(e) => {
+                if (filterHasDraggedRef.current) e.preventDefault();
+              }}
+              className="flex items-center space-x-1.5 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold shrink-0 hover:bg-emerald-100 transition shadow-2xs hover:scale-102 select-none"
+            >
+              <Leaf className="w-3.5 h-3.5 text-emerald-600 fill-emerald-500" />
+              <span>Pure Veg</span>
+            </Link>
+            <Link
+              href="/menu"
+              onClick={(e) => {
+                if (filterHasDraggedRef.current) e.preventDefault();
+              }}
+              className="flex items-center space-x-1.5 px-4 py-2 rounded-full bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold shrink-0 hover:bg-amber-100 transition shadow-2xs hover:scale-102 select-none"
+            >
+              <Flame className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
+              <span>Bestsellers</span>
+            </Link>
+            <Link
+              href="/menu"
+              onClick={(e) => {
+                if (filterHasDraggedRef.current) e.preventDefault();
+              }}
+              className="flex items-center space-x-1.5 px-4 py-2 rounded-full bg-sky-50 border border-sky-300 text-sky-900 text-xs font-bold shrink-0 hover:bg-sky-100 transition shadow-2xs hover:scale-102 select-none"
+            >
+              <Zap className="w-3.5 h-3.5 text-sky-600 fill-sky-500" />
+              <span>Under 30 Mins</span>
+            </Link>
+            <Link
+              href="/menu"
+              onClick={(e) => {
+                if (filterHasDraggedRef.current) e.preventDefault();
+              }}
+              className="flex items-center space-x-1.5 px-4 py-2 rounded-full bg-rose-50 border border-rose-300 text-rose-900 text-xs font-bold shrink-0 hover:bg-rose-100 transition shadow-2xs hover:scale-102 select-none"
+            >
+              <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+              <span>4.5+ Top Rated</span>
+            </Link>
+            <Link
+              href="/menu"
+              onClick={(e) => {
+                if (filterHasDraggedRef.current) e.preventDefault();
+              }}
+              className="flex items-center space-x-1.5 px-4 py-2 rounded-full bg-purple-50 border border-purple-300 text-purple-900 text-xs font-bold shrink-0 hover:bg-purple-100 transition shadow-2xs hover:scale-102 select-none"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-purple-600 fill-purple-400" />
+              <span>Special Offers</span>
+            </Link>
+            <Link
+              href="/menu"
+              onClick={(e) => {
+                if (filterHasDraggedRef.current) e.preventDefault();
+              }}
+              className="flex items-center space-x-1.5 px-4 py-2 rounded-full bg-teal-50 border border-teal-300 text-teal-900 text-xs font-bold shrink-0 hover:bg-teal-100 transition shadow-2xs hover:scale-102 select-none"
+            >
+              <Award className="w-3.5 h-3.5 text-teal-600 fill-teal-400" />
+              <span>Chef Special</span>
+            </Link>
+          </div>
         </section>
 
         {/* Trending & Popular Dishes Cards */}

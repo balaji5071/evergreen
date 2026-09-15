@@ -9,7 +9,7 @@ import { ArrowRight, Mail, Lock, AlertCircle, ShieldCheck } from "lucide-react";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, refreshUser } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,20 +29,15 @@ export default function AdminLoginPage() {
       return;
     }
 
-    // Verify role is Admin
-    try {
-      const meRes = await fetch("/api/auth/me");
-      const data = await meRes.json();
-      setLoading(false);
+    setLoading(false);
 
-      if (data?.user?.role === "Admin") {
-        router.push("/admin");
-      } else {
-        setError("Access Denied: Admin privileges required.");
-      }
-    } catch (err) {
-      setLoading(false);
-      setError("Failed to verify admin status.");
+    if (res.user?.role === "Admin") {
+      const redirect = new URLSearchParams(window.location.search).get("redirect");
+      router.replace(redirect?.startsWith("/admin") ? redirect : "/admin");
+    } else {
+      await fetch("/api/auth/logout", { method: "POST" });
+      await refreshUser();
+      setError("Access Denied: Admin privileges required.");
     }
   };
 
@@ -139,7 +134,7 @@ export default function AdminLoginPage() {
 
         <div className="text-center text-xs text-slate-500">
           Not an administrator?{" "}
-          <Link href="/login" className="text-[#0C3B2E] font-bold underline">
+          <Link href="/users" className="text-[#0C3B2E] font-bold underline">
             Customer Login
           </Link>
         </div>

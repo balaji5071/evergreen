@@ -17,7 +17,7 @@ export async function proxy(request: NextRequest) {
     const token = request.cookies.get("evergreen_token")?.value;
 
     if (!token) {
-      const loginUrl = new URL("/login", request.url);
+      const loginUrl = new URL("/admin-login", request.url);
       loginUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(loginUrl);
     }
@@ -25,10 +25,14 @@ export async function proxy(request: NextRequest) {
     try {
       const { payload } = await jwtVerify(token, encodedJwtSecret);
       if (payload.role !== "Admin") {
-        return NextResponse.redirect(new URL("/login", request.url));
+        const loginUrl = new URL("/admin-login", request.url);
+        loginUrl.searchParams.set("redirect", pathname);
+        return NextResponse.redirect(loginUrl);
       }
     } catch {
-      return NextResponse.redirect(new URL("/login", request.url));
+      const loginUrl = new URL("/admin-login", request.url);
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
     }
   }
 

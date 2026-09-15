@@ -30,10 +30,17 @@ export default function LoginPage() {
       }
 
       const role = res.user.role;
-      if (role === "Admin" || role === "Staff") {
-        window.location.href = "/staff/dashboard";
+      const redirect = new URLSearchParams(window.location.search).get("redirect");
+      if (redirect && redirect.startsWith("/") && !redirect.startsWith("/admin") && !redirect.startsWith("/staff")) {
+        router.replace(redirect);
+      } else if (redirect && (role === "Admin" || role === "Staff")) {
+        router.replace(redirect);
+      } else if (role === "Admin") {
+        router.replace("/admin");
+      } else if (role === "Staff") {
+        router.replace("/staff/dashboard");
       } else {
-        window.location.href = "/menu";
+        router.replace("/menu");
       }
     } catch (err: any) {
       setLoading(false);
@@ -126,7 +133,7 @@ export default function LoginPage() {
 
           <div className="pt-1">
             <Link
-              href="/staff/login"
+              href="/staff"
               className="inline-block text-[11px] font-extrabold text-[#0C3B2E] bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200 hover:bg-emerald-100 transition"
             >
               Are you kitchen / restaurant staff? Staff Portal Login →

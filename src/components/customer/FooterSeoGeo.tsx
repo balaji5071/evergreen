@@ -31,6 +31,8 @@ export default function FooterSeoGeo() {
     pathname.startsWith("/admin") ||
     pathname.startsWith("/staff") ||
     pathname === "/login" ||
+    pathname === "/users" ||
+    pathname === "/admin-login" ||
     pathname === "/signup" ||
     pathname === "/cart" ||
     pathname.startsWith("/checkout") ||
@@ -108,7 +110,7 @@ export default function FooterSeoGeo() {
                 </Link>
               </li>
               <li>
-                <Link href="/login" className="hover:text-amber-300 transition-colors flex items-center space-x-2">
+                <Link href="/users" className="hover:text-amber-300 transition-colors flex items-center space-x-2">
                   <span>Customer Login / Signup</span>
                 </Link>
               </li>

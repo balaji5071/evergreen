@@ -211,7 +211,79 @@ export default function StaffHistoryPage() {
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-3xl border border-[#E6E2D8] shadow-card-soft overflow-hidden">
+        <div className="space-y-3">
+          <div className="space-y-3 md:hidden">
+            {filteredHistory.map((order) => {
+              const isCancelled = order.orderStatus === "Cancelled";
+              const eventDate = order.deliveredAt || order.cancelledAt || order.createdAt;
+
+              return (
+                <article key={order._id} className="rounded-2xl border border-[#E6E2D8] bg-white p-4 shadow-card-soft">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-mono text-sm font-black text-[#0C3B2E]">
+                        #{order._id.slice(-6).toUpperCase()}
+                      </p>
+                      <p className="mt-1 truncate text-sm font-bold text-slate-800">
+                        {order.userId?.name || "Customer"}
+                      </p>
+                      <p className="text-[11px] text-slate-500">{order.userId?.phone || "No phone number"}</p>
+                    </div>
+                    <span
+                      className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-extrabold uppercase ${
+                        isCancelled
+                          ? "border-red-300 bg-red-100 text-red-900"
+                          : "border-emerald-300 bg-emerald-100 text-emerald-900"
+                      }`}
+                    >
+                      {order.orderStatus}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3 border-y border-slate-100 py-3 text-[11px]">
+                    <div>
+                      <p className="font-bold uppercase tracking-wide text-slate-400">Date & time</p>
+                      <p className="mt-1 font-semibold text-slate-700">{new Date(eventDate).toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="font-bold uppercase tracking-wide text-slate-400">Payment</p>
+                      <p className="mt-1 font-semibold text-slate-700">{order.paymentMethod || "Not specified"}</p>
+                    </div>
+                    <div>
+                      <p className="font-bold uppercase tracking-wide text-slate-400">Amount</p>
+                      <p className="mt-1 font-serif text-base font-extrabold text-[#0C3B2E]">₹{order.totalAmount}</p>
+                    </div>
+                    <div>
+                      <p className="font-bold uppercase tracking-wide text-slate-400">Items</p>
+                      <p className="mt-1 font-semibold text-slate-700">{order.items?.length || 0} item types</p>
+                    </div>
+                  </div>
+
+                  {isCancelled ? (
+                    <div className="rounded-xl bg-red-50 p-3 text-[11px] text-red-900">
+                      <p className="font-extrabold">Cancelled by {order.cancelledBy?.name || "Staff"} ({order.cancelledBy?.role || "Staff"})</p>
+                      <p className="mt-1">Reason: {order.cancelReason || "No reason provided"}</p>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 rounded-xl bg-emerald-50 p-3 text-[11px] font-bold text-emerald-900">
+                      <CheckCircle2 className="h-4 w-4 shrink-0" />
+                      Delivered successfully
+                    </div>
+                  )}
+
+                  <Link
+                    href={`/staff/orders/${order._id}`}
+                    className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-slate-100 text-xs font-extrabold text-[#0C3B2E] transition hover:bg-[#0C3B2E] hover:text-white"
+                  >
+                    View order details
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </article>
+              );
+            })}
+          </div>
+
+          <div className="hidden overflow-hidden rounded-3xl border border-[#E6E2D8] bg-white shadow-card-soft md:block">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-[#FAF8F5] border-b border-[#E6E2D8] text-slate-600 font-bold uppercase text-[10px]">
@@ -275,6 +347,7 @@ export default function StaffHistoryPage() {
                 ))}
               </tbody>
             </table>
+          </div>
           </div>
         </div>
       )}

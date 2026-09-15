@@ -171,7 +171,7 @@ export default function SignupPage() {
 
         <div className="text-center text-xs text-slate-500 pt-2 border-t border-slate-100">
           Already a member?{" "}
-          <Link href="/login" className="text-[#0C3B2E] font-bold underline">
+          <Link href="/users" className="text-[#0C3B2E] font-bold underline">
             Sign in
           </Link>
         </div>

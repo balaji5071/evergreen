@@ -40,7 +40,7 @@ export default function StaffLoginPage() {
     const role = res.user.role;
 
     if (role === "Staff" || role === "Admin") {
-      window.location.href = "/staff/dashboard";
+      router.replace("/staff/dashboard");
     } else {
       setLoading(false);
       await logout();
@@ -138,7 +138,7 @@ export default function StaffLoginPage() {
 
         <div className="text-center text-xs text-slate-500 pt-3 border-t border-slate-100 flex flex-col space-y-1.5">
           <span>Are you a customer trying to order food?</span>
-          <Link href="/login" className="text-[#0C3B2E] font-extrabold hover:underline">
+          <Link href="/users" className="text-[#0C3B2E] font-extrabold hover:underline">
             Go to Customer App Login →
           </Link>
         </div>

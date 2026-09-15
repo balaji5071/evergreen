@@ -16,6 +16,43 @@ import {
   HelpCircle,
 } from "lucide-react";
 
+function SettingsSwitch({
+  checked,
+  label,
+  onChange,
+}: {
+  checked: boolean;
+  label: string;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      onClick={() => onChange(!checked)}
+      className="flex min-h-11 max-w-full items-center gap-2 rounded-xl px-1.5 py-1 text-left transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]/20"
+    >
+      <span
+        aria-hidden="true"
+        className={`relative h-7 w-12 shrink-0 rounded-full p-1 transition-colors ${
+          checked ? "bg-[#0C3B2E]" : "bg-slate-200"
+        }`}
+      >
+        <span
+          className={`block h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
+            checked ? "translate-x-5" : "translate-x-0"
+          }`}
+        />
+      </span>
+      <span className="max-w-[150px] text-[10px] font-extrabold leading-tight text-[#0C3B2E] sm:max-w-none sm:text-xs">
+        {label}
+      </span>
+    </button>
+  );
+}
+
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState({
     taxEnabled: false,
@@ -114,25 +151,14 @@ export default function AdminSettingsPage() {
       <form onSubmit={handleSave} className="space-y-6">
         {/* Section 1: Tax Rules */}
         <div className="bg-white p-6 rounded-3xl border border-[#E6E2D8]/80 shadow-card-soft space-y-5">
-          <div className="flex items-center justify-between border-b border-[#E6E2D8]/60 pb-3">
+          <div className="flex flex-col gap-3 border-b border-[#E6E2D8]/60 pb-3 sm:flex-row sm:items-center sm:justify-between">
             <h3 className="font-serif text-lg font-bold text-[#0C3B2E] flex items-center space-x-2">
               <Receipt className="w-5 h-5 text-emerald-700" />
               <span>Tax Configuration (GST / Sales Tax)</span>
             </h3>
 
             {/* Toggle Switch */}
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings.taxEnabled}
-                onChange={(e) => setSettings({ ...settings, taxEnabled: e.target.checked })}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0C3B2E]"></div>
-              <span className="ml-3 text-xs font-bold text-[#0C3B2E]">
-                {settings.taxEnabled ? "TAX ENABLED" : "NO TAX (DISABLED)"}
-              </span>
-            </label>
+            <SettingsSwitch checked={settings.taxEnabled} label={settings.taxEnabled ? "TAX ENABLED" : "NO TAX (DISABLED)"} onChange={(taxEnabled) => setSettings({ ...settings, taxEnabled })} />
           </div>
 
           {settings.taxEnabled ? (
@@ -167,25 +193,14 @@ export default function AdminSettingsPage() {
 
         {/* Section 2: Packaging Charge Rules */}
         <div className="bg-white p-6 rounded-3xl border border-[#E6E2D8]/80 shadow-card-soft space-y-5">
-          <div className="flex items-center justify-between border-b border-[#E6E2D8]/60 pb-3">
+          <div className="flex flex-col gap-3 border-b border-[#E6E2D8]/60 pb-3 sm:flex-row sm:items-center sm:justify-between">
             <h3 className="font-serif text-lg font-bold text-[#0C3B2E] flex items-center space-x-2">
               <Package className="w-5 h-5 text-emerald-700" />
               <span>Packaging Charge Rules</span>
             </h3>
 
             {/* Toggle Switch */}
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings.packagingEnabled}
-                onChange={(e) => setSettings({ ...settings, packagingEnabled: e.target.checked })}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0C3B2E]"></div>
-              <span className="ml-3 text-xs font-bold text-[#0C3B2E]">
-                {settings.packagingEnabled ? "PACKAGING FEE ENABLED" : "NO PACKAGING FEE (FREE)"}
-              </span>
-            </label>
+            <SettingsSwitch checked={settings.packagingEnabled} label={settings.packagingEnabled ? "PACKAGING FEE ENABLED" : "NO PACKAGING FEE (FREE)"} onChange={(packagingEnabled) => setSettings({ ...settings, packagingEnabled })} />
           </div>
 
           {settings.packagingEnabled ? (
@@ -272,25 +287,14 @@ export default function AdminSettingsPage() {
 
         {/* Section 3: Delivery Fee & Free Delivery Threshold */}
         <div className="bg-white p-6 rounded-3xl border border-[#E6E2D8]/80 shadow-card-soft space-y-5">
-          <div className="flex items-center justify-between border-b border-[#E6E2D8]/60 pb-3">
+          <div className="flex flex-col gap-3 border-b border-[#E6E2D8]/60 pb-3 sm:flex-row sm:items-center sm:justify-between">
             <h3 className="font-serif text-lg font-bold text-[#0C3B2E] flex items-center space-x-2">
               <Truck className="w-5 h-5 text-emerald-700" />
               <span>Delivery Fee & Threshold Rules</span>
             </h3>
 
             {/* Toggle Switch */}
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings.deliveryEnabled}
-                onChange={(e) => setSettings({ ...settings, deliveryEnabled: e.target.checked })}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0C3B2E]"></div>
-              <span className="ml-3 text-xs font-bold text-[#0C3B2E]">
-                {settings.deliveryEnabled ? "DELIVERY FEE ENABLED" : "NO DELIVERY FEE (FREE DELIVERY)"}
-              </span>
-            </label>
+            <SettingsSwitch checked={settings.deliveryEnabled} label={settings.deliveryEnabled ? "DELIVERY FEE ENABLED" : "NO DELIVERY FEE (FREE DELIVERY)"} onChange={(deliveryEnabled) => setSettings({ ...settings, deliveryEnabled })} />
           </div>
 
           {settings.deliveryEnabled ? (

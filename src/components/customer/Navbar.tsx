@@ -40,6 +40,8 @@ export default function Navbar() {
     pathname.startsWith("/admin") ||
     pathname.startsWith("/staff") ||
     pathname === "/login" ||
+    pathname === "/users" ||
+    pathname === "/admin-login" ||
     pathname === "/signup"
   ) {
     return null;

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSessionUser, requireAuthUser } from "@/lib/auth";
+import { getSessionUser } from "@/lib/auth";
 
 export async function GET() {
   try {
@@ -8,28 +8,8 @@ export async function GET() {
       return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
     }
 
-    try {
-      const user = await requireAuthUser();
-      if (user) {
-        return NextResponse.json({
-          user: {
-            _id: user._id.toString(),
-            name: user.name,
-            email: user.email,
-            phone: user.phone || "",
-            role: user.role,
-            permissions: user.permissions || [],
-            employeeId: user.employeeId || "",
-            dutyStatus: user.dutyStatus || "Available",
-            notificationEnabled: user.notificationEnabled ?? true,
-          },
-        });
-      }
-    } catch (e) {
-      // Fallback to JWT payload if DB lookup delays
-    }
-
-    // Fast instant response from decoded JWT session cookie
+    // Session reads should not wait for MongoDB. The JWT contains the access
+    // data needed by the client; database-backed pages validate permissions separately.
     return NextResponse.json({
       user: {
         _id: session.userId,

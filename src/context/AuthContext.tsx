@@ -111,7 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await fetch("/api/auth/logout", { method: "POST" });
     } finally {
       setUser(null);
-      window.location.href = "/login";
+      window.location.href = "/users";
     }
   };
 

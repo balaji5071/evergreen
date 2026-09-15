@@ -441,15 +441,20 @@ export default function AdminUsersPage() {
                   )}
 
                   <div className="flex items-center space-x-1.5">
-                    <select
-                      value={u.role}
-                      onChange={(e) => handleRoleChange(u._id, e.target.value)}
-                      className="px-3 py-2 rounded-xl border border-[#E6E2D8] bg-white text-xs font-bold text-[#0C3B2E] focus:outline-none focus:ring-2 focus:ring-[#0C3B2E] cursor-pointer shadow-xs"
-                    >
-                      <option value="Customer">Customer</option>
-                      <option value="Staff">Kitchen Staff</option>
-                      <option value="Admin">Administrator</option>
-                    </select>
+                    {u.role === "Customer" ? (
+                      <span className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-500">
+                        Customer account
+                      </span>
+                    ) : (
+                      <select
+                        value={u.role}
+                        onChange={(e) => handleRoleChange(u._id, e.target.value)}
+                        className="px-3 py-2 rounded-xl border border-[#E6E2D8] bg-white text-xs font-bold text-[#0C3B2E] focus:outline-none focus:ring-2 focus:ring-[#0C3B2E] cursor-pointer shadow-xs"
+                      >
+                        <option value="Staff">Kitchen Staff</option>
+                        <option value="Admin">Administrator</option>
+                      </select>
+                    )}
                   </div>
 
                   {/* Delete Button */}

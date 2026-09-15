@@ -6,7 +6,7 @@ import { useSocket, INotificationItem } from "@/context/SocketContext";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-export default function NotificationDropdown() {
+export default function NotificationDropdown({ dark = false }: { dark?: boolean }) {
   const { notifications, unreadCount, markAllRead, markSingleRead } = useSocket();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -48,7 +48,7 @@ export default function NotificationDropdown() {
       {/* Bell Button */}
       <button
         onClick={() => setOpen(!open)}
-        className="relative p-2 rounded-xl text-slate-600 hover:text-[#0C3B2E] hover:bg-[#EAF5EF] transition-all focus:outline-none"
+        className={`relative p-2 rounded-xl transition-all focus:outline-none ${dark ? "text-white hover:bg-white/10" : "text-slate-600 hover:text-[#0C3B2E] hover:bg-[#EAF5EF]"}`}
         title="Notifications"
       >
         <Bell className="w-5 h-5" />

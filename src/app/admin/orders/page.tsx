@@ -16,6 +16,8 @@ import {
   DollarSign,
   UserPlus,
   Bell,
+  Search,
+  X,
 } from "lucide-react";
 import InvoiceModal from "@/components/customer/InvoiceModal";
 import { useSocket } from "@/context/SocketContext";
@@ -25,6 +27,7 @@ export default function AdminOrdersPage() {
   const [staffList, setStaffList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState<any | null>(null);
 
@@ -62,17 +65,29 @@ export default function AdminOrdersPage() {
   }, []);
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
+    let cancelReason = "";
+    if (newStatus === "Cancelled") {
+      cancelReason = window.prompt("Enter the cancellation reason:")?.trim() || "";
+      if (!cancelReason) {
+        window.alert("A cancellation reason is required.");
+        return;
+      }
+    }
+
     setUpdatingId(orderId);
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderStatus: newStatus }),
+        body: JSON.stringify({ orderStatus: newStatus, cancelReason }),
       });
 
       if (res.ok) {
         emitOrderStatusUpdate(orderId, newStatus);
         fetchData();
+      } else {
+        const error = await res.json();
+        window.alert(error.message || "Failed to update order status.");
       }
     } catch (e) {
       console.error(e);
@@ -111,10 +126,22 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const filteredOrders =
-    filterStatus === "All"
-      ? orders
-      : orders.filter((o) => o.orderStatus === filterStatus);
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+  const filteredOrders = orders.filter((order) => {
+    const matchesStatus = filterStatus === "All" || order.orderStatus === filterStatus;
+    const searchableText = [
+      order._id,
+      order.userId?.name,
+      order.userId?.phone,
+      order.deliveredBy?.name,
+      order.deliveredBy?.employeeId,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    return matchesStatus && (!normalizedSearch || searchableText.includes(normalizedSearch));
+  });
 
   return (
     <div className="space-y-6">
@@ -135,6 +162,29 @@ export default function AdminOrdersPage() {
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           <span>Refresh Orders</span>
         </button>
+      </div>
+
+      {/* Search Orders */}
+      <div className="relative">
+        <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <input
+          type="search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search order ID, customer, phone or staff"
+          aria-label="Search orders"
+          className="h-12 w-full rounded-2xl border border-[#E6E2D8] bg-white pl-10 pr-10 text-sm font-semibold text-[#0C3B2E] shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[#0C3B2E] focus:ring-2 focus:ring-[#0C3B2E]/10"
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery("")}
+            aria-label="Clear order search"
+            className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
 
       {/* Filter Tabs */}
@@ -178,7 +228,9 @@ export default function AdminOrdersPage() {
       ) : filteredOrders.length === 0 ? (
         <div className="bg-white p-12 rounded-3xl text-center space-y-2 border border-[#E6E2D8]">
           <p className="font-serif text-lg font-bold text-[#0C3B2E]">No orders found</p>
-          <p className="text-xs text-slate-500">There are no orders matching this filter.</p>
+          <p className="text-xs text-slate-500">
+            {searchQuery ? "Try a different search or clear the search field." : "There are no orders matching this filter."}
+          </p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -273,7 +325,11 @@ export default function AdminOrdersPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                   <select
                     value={order.deliveredBy?._id || order.deliveredBy || ""}
-                    disabled={updatingId === order._id || order.orderStatus === "Cancelled"}
+                    disabled={
+                      updatingId === order._id ||
+                      order.orderStatus === "Cancelled" ||
+                      order.orderStatus === "Delivered"
+                    }
                     onChange={(e) =>
                       handleAssignStaff(order._id, e.target.value, order.orderStatus)
                     }
@@ -291,12 +347,32 @@ export default function AdminOrdersPage() {
                     <div className="flex items-center space-x-2 bg-emerald-100 text-emerald-900 px-3 py-2 rounded-xl text-xs font-extrabold border border-emerald-300">
                       <Truck className="w-4 h-4 text-emerald-700 shrink-0" />
                       <span>
-                        Assigned: {order.deliveredBy.name || "Staff User"} ({order.deliveredBy.employeeId || "EMP"})
+                        {order.orderStatus === "Delivered" ? "Delivered by: " : "Assigned: "}
+                        {order.deliveredBy.name || "Staff User"} ({order.deliveredBy.employeeId || "EMP"})
                       </span>
                     </div>
                   )}
                 </div>
+                {order.orderStatus === "Delivered" && (
+                  <p className="text-[11px] font-semibold text-emerald-800">
+                    Delivery assignment is locked after completion
+                    {order.deliveredAt
+                      ? ` on ${new Date(order.deliveredAt).toLocaleString("en-IN")}`
+                      : ""}
+                  </p>
+                )}
               </div>
+
+              {(order.orderStatus === "Cancelled" || order.cancelledBy || order.cancelReason) && (
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3 text-xs">
+                  <p className="font-extrabold uppercase tracking-wider text-rose-800">Cancellation details</p>
+                  <p className="mt-1 font-semibold text-rose-900">
+                    Cancelled by: {order.cancelledBy?.name || order.cancelledBy?.userId?.name || "Admin"}
+                    {order.cancelledAt ? ` · ${new Date(order.cancelledAt).toLocaleString("en-IN")}` : ""}
+                  </p>
+                  <p className="mt-1 text-rose-800">Reason: {order.cancelReason || "Not provided"}</p>
+                </div>
+              )}
 
               {/* Items & Address Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">

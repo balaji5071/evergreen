@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { Plus, Minus, ShoppingBag, Sparkles, Search, Utensils } from "lucide-react";
+import { Plus, Minus, ShoppingBag, Sparkles, Search, Utensils, ChevronLeft, ChevronRight } from "lucide-react";
 import BottomNav from "@/components/customer/BottomNav";
 import { useCart } from "@/context/CartContext";
 import Link from "next/link";
@@ -53,6 +53,162 @@ export default function MenuPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const itemsSectionRef = useRef<HTMLDivElement>(null);
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const [showLeftArrow, setShowLeftArrow] = useState<boolean>(false);
+  const [showRightArrow, setShowRightArrow] = useState<boolean>(false);
+  const isDraggingRef = useRef<boolean>(false);
+  const startXRef = useRef<number>(0);
+  const scrollLeftRef = useRef<number>(0);
+  const hasDraggedRef = useRef<boolean>(false);
+
+  // Auto-move animation refs
+  const isUserInteractingRef = useRef<boolean>(false);
+  const autoMoveTimerRef = useRef<any>(null);
+  const autoMoveDirectionRef = useRef<number>(1); // 1 = right, -1 = left
+  const autoMovePauseRef = useRef<boolean>(false);
+
+  const pauseAutoMoveTemporarily = (durationMs = 2500) => {
+    isUserInteractingRef.current = true;
+    if (autoMoveTimerRef.current) clearTimeout(autoMoveTimerRef.current);
+    autoMoveTimerRef.current = setTimeout(() => {
+      isUserInteractingRef.current = false;
+    }, durationMs);
+  };
+
+  const updateScrollArrows = () => {
+    const el = categoryScrollRef.current;
+    if (!el) return;
+    const canScrollLeft = el.scrollLeft > 10;
+    const canScrollRight = el.scrollLeft < el.scrollWidth - el.clientWidth - 10;
+    setShowLeftArrow(canScrollLeft);
+    setShowRightArrow(canScrollRight);
+  };
+
+  // Continuous smooth auto-move loop
+  useEffect(() => {
+    const el = categoryScrollRef.current;
+    if (!el) return;
+
+    let animationFrameId: number;
+    let lastTime = performance.now();
+
+    const animate = (time: number) => {
+      const delta = time - lastTime;
+      lastTime = time;
+
+      // Only auto-scroll when content overflows and user is not actively interacting
+      if (
+        !isUserInteractingRef.current &&
+        !autoMovePauseRef.current &&
+        el.scrollWidth > el.clientWidth + 10
+      ) {
+        // Speed: ~36 pixels per second (smooth, fluid glide)
+        const stepAmount = (36 / 1000) * Math.min(delta, 64);
+        const maxScroll = el.scrollWidth - el.clientWidth;
+
+        if (autoMoveDirectionRef.current === 1) {
+          if (el.scrollLeft >= maxScroll - 2) {
+            autoMovePauseRef.current = true;
+            setTimeout(() => {
+              autoMoveDirectionRef.current = -1;
+              autoMovePauseRef.current = false;
+            }, 1800);
+          } else {
+            el.scrollLeft += stepAmount;
+          }
+        } else {
+          if (el.scrollLeft <= 2) {
+            autoMovePauseRef.current = true;
+            setTimeout(() => {
+              autoMoveDirectionRef.current = 1;
+              autoMovePauseRef.current = false;
+            }, 1800);
+          } else {
+            el.scrollLeft -= stepAmount;
+          }
+        }
+        updateScrollArrows();
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      if (autoMoveTimerRef.current) clearTimeout(autoMoveTimerRef.current);
+    };
+  }, [categories]);
+
+  useEffect(() => {
+    const el = categoryScrollRef.current;
+    if (!el) return;
+
+    const onScroll = () => {
+      updateScrollArrows();
+    };
+
+    const onWheel = (e: WheelEvent) => {
+      if (e.deltaY !== 0 && el.scrollWidth > el.clientWidth) {
+        e.preventDefault();
+        pauseAutoMoveTemporarily(2000);
+        el.scrollLeft += e.deltaY;
+        updateScrollArrows();
+      }
+    };
+
+    el.addEventListener("scroll", onScroll, { passive: true });
+    el.addEventListener("wheel", onWheel, { passive: false });
+
+    updateScrollArrows();
+    const timer = setTimeout(updateScrollArrows, 300);
+    window.addEventListener("resize", updateScrollArrows);
+
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      el.removeEventListener("wheel", onWheel);
+      clearTimeout(timer);
+      window.removeEventListener("resize", updateScrollArrows);
+    };
+  }, [categories]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const el = categoryScrollRef.current;
+    if (!el) return;
+    isUserInteractingRef.current = true;
+    isDraggingRef.current = true;
+    hasDraggedRef.current = false;
+    startXRef.current = e.pageX - el.offsetLeft;
+    scrollLeftRef.current = el.scrollLeft;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const el = categoryScrollRef.current;
+    if (!isDraggingRef.current || !el) return;
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - startXRef.current) * 1.5;
+    if (Math.abs(walk) > 6) {
+      hasDraggedRef.current = true;
+    }
+    el.scrollLeft = scrollLeftRef.current - walk;
+    updateScrollArrows();
+  };
+
+  const handleMouseUpOrLeave = () => {
+    isDraggingRef.current = false;
+    pauseAutoMoveTemporarily(2500);
+    setTimeout(() => {
+      hasDraggedRef.current = false;
+    }, 100);
+  };
+
+  const scrollCategory = (direction: "left" | "right") => {
+    if (!categoryScrollRef.current) return;
+    pauseAutoMoveTemporarily(3000);
+    const scrollAmount = direction === "left" ? -240 : 240;
+    categoryScrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+  };
 
   useEffect(() => {
     const controller = new AbortController();
@@ -130,10 +286,20 @@ export default function MenuPage() {
     }
   }, [loading, items]);
 
-  const handleCategoryClick = (catId: string) => {
+  const handleCategoryClick = (catId: string, e?: React.MouseEvent<HTMLButtonElement>) => {
+    if (hasDraggedRef.current) return;
+    pauseAutoMoveTemporarily(4000);
     isCategorySwitched.current = true;
     setSelectedCategory(catId);
     setSearchQuery("");
+
+    if (e?.currentTarget) {
+      e.currentTarget.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
+    }
   };
 
   return (
@@ -170,9 +336,59 @@ export default function MenuPage() {
       </div>
 
       {/* Zomato-Style Sticky Circular Category Selector Bar */}
-      <div className="bg-white border-b border-[#E6E2D8]/80 sticky top-[64px] z-30 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-          <div className="flex items-center space-x-3.5 sm:space-x-5 overflow-x-auto no-scrollbar py-1 px-1">
+      <div className="bg-white border-b border-[#E6E2D8]/80 sticky top-[64px] z-30 shadow-xs select-none">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-2 relative group/catbar">
+          {/* Left Arrow Button */}
+          {showLeftArrow && (
+            <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center pl-1 sm:pl-2 bg-gradient-to-r from-white via-white/95 to-transparent pr-4 pointer-events-none">
+              <button
+                type="button"
+                onClick={() => scrollCategory("left")}
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white shadow-md border border-slate-200 text-[#0C3B2E] flex items-center justify-center pointer-events-auto hover:bg-[#0C3B2E] hover:text-white transition-all transform hover:scale-105 active:scale-95"
+                aria-label="Scroll categories left"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Right Arrow Button */}
+          {showRightArrow && (
+            <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center pr-1 sm:pr-2 bg-gradient-to-l from-white via-white/95 to-transparent pl-4 pointer-events-none">
+              <button
+                type="button"
+                onClick={() => scrollCategory("right")}
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white shadow-md border border-slate-200 text-[#0C3B2E] flex items-center justify-center pointer-events-auto hover:bg-[#0C3B2E] hover:text-white transition-all transform hover:scale-105 active:scale-95"
+                aria-label="Scroll categories right"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Scrollable Container with auto-move, drag & touch support */}
+          <div
+            ref={categoryScrollRef}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUpOrLeave}
+            onMouseLeave={handleMouseUpOrLeave}
+            onTouchStart={() => {
+              isUserInteractingRef.current = true;
+            }}
+            onTouchEnd={() => {
+              pauseAutoMoveTemporarily(2500);
+            }}
+            onMouseEnter={() => {
+              isUserInteractingRef.current = true;
+            }}
+            className="flex items-center space-x-3.5 sm:space-x-5 overflow-x-auto no-scrollbar py-1 px-2 cursor-grab active:cursor-grabbing select-none touch-pan-x"
+            style={{
+              WebkitOverflowScrolling: "touch",
+              touchAction: "pan-x",
+              overscrollBehaviorX: "contain",
+            }}
+          >
             {categories.map((cat) => {
               const isSelected = selectedCategory === cat._id;
               const catImage = getCategoryImg(cat.name, cat.imageUrl);
@@ -180,12 +396,13 @@ export default function MenuPage() {
               return (
                 <button
                   key={cat._id}
-                  onClick={() => handleCategoryClick(cat._id)}
-                  className="flex flex-col items-center space-y-1.5 shrink-0 group focus:outline-none cursor-pointer"
+                  type="button"
+                  onClick={(e) => handleCategoryClick(cat._id, e)}
+                  className="flex flex-col items-center space-y-1.5 shrink-0 group focus:outline-none cursor-pointer select-none"
                 >
                   {/* Round Image Ring Container */}
                   <div
-                    className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full p-0.5 transition-all duration-300 ${
+                    className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full p-0.5 transition-all duration-300 pointer-events-none ${
                       isSelected
                         ? "ring-3 ring-[#0C3B2E] ring-offset-2 scale-105 shadow-md bg-[#0C3B2E]"
                         : "border-2 border-slate-200 group-hover:border-[#0C3B2E]/50 group-hover:scale-102 bg-white"
@@ -195,14 +412,15 @@ export default function MenuPage() {
                       <img
                         src={catImage}
                         alt={cat.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        draggable={false}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 select-none pointer-events-none"
                       />
                     </div>
                   </div>
 
                   {/* Category Name Label */}
                   <span
-                    className={`text-[11px] sm:text-xs font-bold transition-all text-center max-w-[65px] sm:max-w-[80px] truncate ${
+                    className={`text-[11px] sm:text-xs font-bold transition-all text-center max-w-[65px] sm:max-w-[80px] truncate select-none pointer-events-none ${
                       isSelected
                         ? "text-[#0C3B2E] font-extrabold underline decoration-2 underline-offset-4"
                         : "text-slate-600 group-hover:text-[#0C3B2E]"
