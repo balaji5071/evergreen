@@ -3,6 +3,8 @@ import { connectToDatabase } from "@/lib/db";
 import { MenuCategory } from "@/lib/models/MenuCategory";
 import { requireStaffOrAdminUser } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -15,9 +17,21 @@ export async function GET(req: Request) {
     }
 
     const categories = await MenuCategory.find(query).sort({ name: 1 });
-    return NextResponse.json(categories);
+    return NextResponse.json(categories, {
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
+    });
   } catch (error) {
-    return NextResponse.json({ message: "Failed to fetch categories" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Failed to fetch categories" },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+        },
+      }
+    );
   }
 }
 
@@ -28,7 +42,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Unauthorized. Admin or Staff access required." }, { status: 403 });
     }
 
-    const { name, description, active } = await req.json();
+    const { name, description, imageUrl, active } = await req.json();
     if (!name || !name.trim()) {
       return NextResponse.json({ message: "Category name is required" }, { status: 400 });
     }
@@ -37,6 +51,7 @@ export async function POST(req: Request) {
     const newCategory = await MenuCategory.create({
       name: name.trim(),
       description: description ? description.trim() : "",
+      imageUrl: imageUrl ? imageUrl.trim() : "",
       active: active !== undefined ? Boolean(active) : true,
     });
     return NextResponse.json(newCategory, { status: 201 });

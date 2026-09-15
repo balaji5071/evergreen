@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Plus, Tag, Edit3, Trash2, CheckCircle2, XCircle, Search, X, FolderTree } from "lucide-react";
+import { Plus, Tag, Edit3, Trash2, CheckCircle2, XCircle, Search, X, FolderTree, Upload } from "lucide-react";
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<any[]>([]);
@@ -12,6 +12,8 @@ export default function AdminCategoriesPage() {
   // Create form state
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Edit modal state
@@ -19,6 +21,8 @@ export default function AdminCategoriesPage() {
   const [editingCat, setEditingCat] = useState<any>(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [editImageUrl, setEditImageUrl] = useState("");
+  const [uploadingEditImage, setUploadingEditImage] = useState(false);
   const [editActive, setEditActive] = useState(true);
   const [savingEdit, setSavingEdit] = useState(false);
 
@@ -42,6 +46,38 @@ export default function AdminCategoriesPage() {
     fetchCategoriesAndItems();
   }, []);
 
+  const uploadCategoryImage = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    setUrl: (url: string) => void,
+    setUploading: (uploading: boolean) => void
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const reader = new FileReader();
+      const image = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.imageUrl) throw new Error(data.message || "Image upload failed");
+      setUrl(data.imageUrl);
+    } catch (error: any) {
+      alert(error.message || "Image upload failed");
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
+  };
+
   const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !name.trim()) return;
@@ -51,12 +87,13 @@ export default function AdminCategoriesPage() {
       const res = await fetch("/api/menu/categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, description }),
+        body: JSON.stringify({ name, description, imageUrl }),
       });
 
       if (res.ok) {
         setName("");
         setDescription("");
+        setImageUrl("");
         fetchCategoriesAndItems();
       } else {
         const err = await res.json();
@@ -74,6 +111,7 @@ export default function AdminCategoriesPage() {
     setEditingCat(cat);
     setEditName(cat.name || "");
     setEditDescription(cat.description || "");
+    setEditImageUrl(cat.imageUrl || "");
     setEditActive(cat.active !== false);
     setShowEditModal(true);
   };
@@ -90,6 +128,7 @@ export default function AdminCategoriesPage() {
         body: JSON.stringify({
           name: editName,
           description: editDescription,
+          imageUrl: editImageUrl,
           active: editActive,
         }),
       });
@@ -180,7 +219,7 @@ export default function AdminCategoriesPage() {
         className="bg-white p-5 rounded-3xl border border-[#E6E2D8]/80 shadow-card-soft space-y-4"
       >
         <h3 className="font-serif text-base font-bold text-[#0C3B2E]">Add New Category</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <input
             type="text"
             required
@@ -196,6 +235,20 @@ export default function AdminCategoriesPage() {
             placeholder="Short description..."
             className="px-4 py-2.5 rounded-xl border border-[#E6E2D8] bg-slate-50 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
           />
+          <div className="flex items-center gap-2 rounded-xl border border-[#E6E2D8] bg-slate-50 p-1.5">
+            <label className="flex min-h-9 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-white px-2 text-xs font-bold text-[#0C3B2E] shadow-sm">
+              <Upload className="h-3.5 w-3.5" />
+              <span>{uploadingImage ? "Uploading..." : imageUrl ? "Change image" : "Add image"}</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => uploadCategoryImage(e, setImageUrl, setUploadingImage)}
+                disabled={uploadingImage}
+                className="hidden"
+              />
+            </label>
+            {imageUrl && <img src={imageUrl} alt="Category preview" className="h-9 w-9 rounded-lg object-cover" />}
+          </div>
         </div>
         <div>
           <button
@@ -238,6 +291,9 @@ export default function AdminCategoriesPage() {
                 }`}
               >
                 <div>
+                  {cat.imageUrl && (
+                    <img src={cat.imageUrl} alt="" className="mb-3 h-24 w-full rounded-xl object-cover" />
+                  )}
                   <div className="flex items-start justify-between">
                     <h4 className="font-bold text-base text-[#0C3B2E]">{cat.name}</h4>
                     <span
@@ -328,6 +384,38 @@ export default function AdminCategoriesPage() {
                   placeholder="Short description..."
                   className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2D8] bg-slate-50 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
                 />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-[#0C3B2E] uppercase">Category Image</label>
+                <div className="rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/60 p-2">
+                  <div className="flex items-center gap-2">
+                    <label className="flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-white px-2 text-xs font-bold text-[#0C3B2E] shadow-sm">
+                      <Upload className="h-4 w-4 text-emerald-700" />
+                      <span>{uploadingEditImage ? "Uploading image..." : editImageUrl ? "Change category image" : "Upload category image"}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => uploadCategoryImage(e, setEditImageUrl, setUploadingEditImage)}
+                        disabled={uploadingEditImage}
+                        className="hidden"
+                      />
+                    </label>
+                    {editImageUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setEditImageUrl("")}
+                        aria-label="Remove category image"
+                        className="flex h-11 w-11 items-center justify-center rounded-xl bg-rose-50 text-rose-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                  {editImageUrl && (
+                    <img src={editImageUrl} alt="Category preview" className="mt-2 h-20 w-full rounded-xl object-cover" />
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-[#E6E2D8]">

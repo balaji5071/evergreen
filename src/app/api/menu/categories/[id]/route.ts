@@ -16,13 +16,14 @@ export async function PUT(
 
     const { id } = await params;
     const body = await req.json();
-    const { name, description, active } = body;
+    const { name, description, imageUrl, active } = body;
 
     await connectToDatabase();
 
     const updateFields: any = {};
     if (name !== undefined) updateFields.name = name.trim();
     if (description !== undefined) updateFields.description = description.trim();
+    if (imageUrl !== undefined) updateFields.imageUrl = imageUrl.trim();
     if (active !== undefined) updateFields.active = Boolean(active);
 
     const updatedCategory = await MenuCategory.findByIdAndUpdate(

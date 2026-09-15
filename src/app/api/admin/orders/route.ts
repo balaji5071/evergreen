@@ -14,6 +14,7 @@ export async function GET() {
     const orders = await Order.find({})
       .populate("userId", "name email phone")
       .populate("deliveredBy", "name email phone role employeeId")
+      .populate("cancelledBy.userId", "name email phone role employeeId")
       .sort({ createdAt: -1 });
 
     return NextResponse.json({ allOrders: orders, orders });

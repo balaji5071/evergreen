@@ -14,16 +14,20 @@ export interface UserData {
   notificationEnabled: boolean;
 }
 
+type AuthResult =
+  | { success: true; user: UserData; message?: string }
+  | { success: false; message?: string; user?: undefined };
+
 interface AuthContextType {
   user: UserData | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  login: (email: string, password: string) => Promise<AuthResult>;
   signup: (
     name: string,
     email: string,
     phone: string,
     password: string
-  ) => Promise<{ success: boolean; message?: string }>;
+  ) => Promise<AuthResult>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -61,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     fetchUser();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<AuthResult> => {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
@@ -73,13 +77,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, message: data.message || "Login failed" };
       }
       setUser(data.user);
-      return { success: true };
+      return { success: true, user: data.user };
     } catch (error: any) {
       return { success: false, message: error.message || "Network error" };
     }
   };
 
-  const signup = async (name: string, email: string, phone: string, password: string) => {
+  const signup = async (
+    name: string,
+    email: string,
+    phone: string,
+    password: string
+  ): Promise<AuthResult> => {
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
@@ -91,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, message: data.message || "Signup failed" };
       }
       setUser(data.user);
-      return { success: true };
+      return { success: true, user: data.user };
     } catch (error: any) {
       return { success: false, message: error.message || "Network error" };
     }
@@ -102,7 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await fetch("/api/auth/logout", { method: "POST" });
     } finally {
       setUser(null);
-      window.location.href = "/login";
+      window.location.href = "/users";
     }
   };
 

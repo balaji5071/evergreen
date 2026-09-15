@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
+import { MenuCategory } from "@/lib/models/MenuCategory";
 import { MenuItem } from "@/lib/models/MenuItem";
 import { requireAdminUser } from "@/lib/auth";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   try {
@@ -22,15 +25,36 @@ export async function GET(req: Request) {
     }
 
     if (search) {
-      query.name = { $regex: search, $options: "i" };
+      const searchRegex = { $regex: search, $options: "i" };
+      const matchingCategories = await MenuCategory.find({ name: searchRegex }).select("_id");
+
+      query.$or = [
+        { name: searchRegex },
+        { description: searchRegex },
+        ...(matchingCategories.length > 0
+          ? [{ categoryId: { $in: matchingCategories.map((category) => category._id) } }]
+          : []),
+      ];
     }
 
     const items = await MenuItem.find(query).populate("categoryId", "name").sort({ createdAt: -1 });
 
-    return NextResponse.json(items);
+    return NextResponse.json(items, {
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
+    });
   } catch (error: any) {
     console.error("Fetch menu items error:", error);
-    return NextResponse.json({ message: "Failed to fetch menu items" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Failed to fetch menu items" },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+        },
+      }
+    );
   }
 }
 

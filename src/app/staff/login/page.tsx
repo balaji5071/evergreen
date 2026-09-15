@@ -31,28 +31,20 @@ export default function StaffLoginPage() {
     setLoading(true);
 
     const res = await login(email, password);
-    if (!res.success) {
+    if (!res.success || !res.user) {
       setLoading(false);
       setError(res.message || "Invalid credentials");
       return;
     }
 
-    // Verify staff role via /api/auth/me
-    try {
-      const meRes = await fetch("/api/auth/me");
-      const meData = await meRes.json();
-      const role = meData?.user?.role;
+    const role = res.user.role;
 
-      if (role === "Staff" || role === "Admin") {
-        router.push("/staff/dashboard");
-      } else {
-        await logout();
-        setError("Access Denied: Customer accounts cannot access the Staff Portal. Please use the Customer App.");
-      }
-    } catch (err: any) {
-      setError("Authorization verification failed. Please try again.");
-    } finally {
+    if (role === "Staff" || role === "Admin") {
+      router.replace("/staff/dashboard");
+    } else {
       setLoading(false);
+      await logout();
+      setError("Access Denied: Customer accounts cannot access the Staff Portal. Please use the Customer App.");
     }
   };
 
@@ -146,7 +138,7 @@ export default function StaffLoginPage() {
 
         <div className="text-center text-xs text-slate-500 pt-3 border-t border-slate-100 flex flex-col space-y-1.5">
           <span>Are you a customer trying to order food?</span>
-          <Link href="/login" className="text-[#0C3B2E] font-extrabold hover:underline">
+          <Link href="/users" className="text-[#0C3B2E] font-extrabold hover:underline">
             Go to Customer App Login →
           </Link>
         </div>

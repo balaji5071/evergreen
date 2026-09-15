@@ -16,30 +16,36 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setError("");
     setLoading(true);
 
-    const res = await login(email, password);
-    setLoading(false);
+    try {
+      const res = await login(email, password);
 
-    if (!res.success) {
-      setError(res.message || "Invalid credentials");
-      return;
+      if (!res.success || !res.user) {
+        setLoading(false);
+        setError(res.message || "Invalid email or password");
+        return;
+      }
+
+      const role = res.user.role;
+      const redirect = new URLSearchParams(window.location.search).get("redirect");
+      if (redirect && redirect.startsWith("/") && !redirect.startsWith("/admin") && !redirect.startsWith("/staff")) {
+        router.replace(redirect);
+      } else if (redirect && (role === "Admin" || role === "Staff")) {
+        router.replace(redirect);
+      } else if (role === "Admin") {
+        router.replace("/admin");
+      } else if (role === "Staff") {
+        router.replace("/staff/dashboard");
+      } else {
+        router.replace("/menu");
+      }
+    } catch (err: any) {
+      setLoading(false);
+      setError(err?.message || "Login failed. Please try again.");
     }
-
-    // Check user role
-    fetch("/api/auth/me")
-      .then((r) => r.json())
-      .then((data) => {
-        const role = data?.user?.role;
-        if (role === "Admin" || role === "Staff") {
-          router.push("/staff/dashboard");
-        } else {
-          router.push("/menu");
-        }
-      })
-      .catch(() => router.push("/menu"));
   };
 
   return (
@@ -127,7 +133,7 @@ export default function LoginPage() {
 
           <div className="pt-1">
             <Link
-              href="/staff/login"
+              href="/staff"
               className="inline-block text-[11px] font-extrabold text-[#0C3B2E] bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200 hover:bg-emerald-100 transition"
             >
               Are you kitchen / restaurant staff? Staff Portal Login →

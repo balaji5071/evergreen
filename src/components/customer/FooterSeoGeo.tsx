@@ -26,14 +26,19 @@ export default function FooterSeoGeo() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Don't show footer on admin, staff, auth, or cart pages
+  // Don't show footer on admin, staff, auth, cart, checkout, profile, order tracking, or menu pages
   if (
     pathname.startsWith("/admin") ||
     pathname.startsWith("/staff") ||
     pathname === "/login" ||
+    pathname === "/users" ||
+    pathname === "/admin-login" ||
     pathname === "/signup" ||
     pathname === "/cart" ||
-    pathname.startsWith("/checkout")
+    pathname.startsWith("/checkout") ||
+    pathname.startsWith("/profile") ||
+    pathname.startsWith("/orders") ||
+    pathname.startsWith("/menu")
   ) {
     return null;
   }
@@ -105,7 +110,7 @@ export default function FooterSeoGeo() {
                 </Link>
               </li>
               <li>
-                <Link href="/login" className="hover:text-amber-300 transition-colors flex items-center space-x-2">
+                <Link href="/users" className="hover:text-amber-300 transition-colors flex items-center space-x-2">
                   <span>Customer Login / Signup</span>
                 </Link>
               </li>

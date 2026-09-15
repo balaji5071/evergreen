@@ -173,7 +173,7 @@ export default function CheckoutPage() {
     if (!user) {
       setError("Guests cannot place orders. Please log in or sign up to complete your order.");
       setTimeout(() => {
-        router.push("/login?redirect=checkout");
+        router.push("/users?redirect=checkout");
       }, 2000);
       return;
     }

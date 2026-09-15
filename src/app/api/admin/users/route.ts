@@ -145,6 +145,12 @@ export async function PUT(req: Request) {
     }
 
     if (role) {
+      if (userToUpdate.role === "Customer" && role !== "Customer") {
+        return NextResponse.json(
+          { message: "Customer accounts must remain Customer accounts." },
+          { status: 400 }
+        );
+      }
       userToUpdate.role = role;
       if (role !== "Customer" && !userToUpdate.employeeId) {
         const count = await User.countDocuments({ role: { $in: ["Admin", "Staff"] } });

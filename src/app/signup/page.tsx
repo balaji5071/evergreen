@@ -19,7 +19,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setError("");
 
     if (password !== confirmPassword) {
@@ -28,15 +28,21 @@ export default function SignupPage() {
     }
 
     setLoading(true);
-    const res = await signup(name, email, phone, password);
-    setLoading(false);
 
-    if (!res.success) {
-      setError(res.message || "Signup failed");
-      return;
+    try {
+      const res = await signup(name, email, phone, password);
+
+      if (!res.success || !res.user) {
+        setLoading(false);
+        setError(res.message || "Signup failed");
+        return;
+      }
+
+      window.location.href = "/menu";
+    } catch (err: any) {
+      setLoading(false);
+      setError(err?.message || "Account creation failed. Please try again.");
     }
-
-    window.location.href = "/menu";
   };
 
   return (
@@ -165,7 +171,7 @@ export default function SignupPage() {
 
         <div className="text-center text-xs text-slate-500 pt-2 border-t border-slate-100">
           Already a member?{" "}
-          <Link href="/login" className="text-[#0C3B2E] font-bold underline">
+          <Link href="/users" className="text-[#0C3B2E] font-bold underline">
             Sign in
           </Link>
         </div>

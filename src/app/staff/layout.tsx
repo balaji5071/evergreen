@@ -29,9 +29,9 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
 
   // All Hooks must run unconditionally BEFORE any early return
   useEffect(() => {
-    if (pathname === "/staff/login") return;
+    if (pathname === "/staff" || pathname === "/staff/login") return;
     if (!loading && (!user || (user.role !== "Staff" && user.role !== "Admin"))) {
-      router.push("/staff/login");
+      router.push("/staff");
     }
   }, [user, loading, router, pathname]);
 
@@ -47,7 +47,7 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
   }, []);
 
   // Early return for login route (SAFE because all hooks have executed)
-  if (pathname === "/staff/login") {
+  if (pathname === "/staff" || pathname === "/staff/login") {
     return <>{children}</>;
   }
 

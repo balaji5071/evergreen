@@ -21,7 +21,7 @@ export default function BottomNav() {
   ];
 
   // Hide bottom nav on admin routes, staff routes, or auth pages
-  if (pathname.startsWith("/admin") || pathname.startsWith("/staff") || pathname === "/login" || pathname === "/signup") {
+  if (pathname.startsWith("/admin") || pathname.startsWith("/staff") || pathname === "/login" || pathname === "/users" || pathname === "/admin-login" || pathname === "/signup") {
     return null;
   }
 

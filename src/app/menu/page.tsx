@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { Plus, Minus, ShoppingBag, Sparkles, Search, Utensils } from "lucide-react";
+import { Plus, Minus, ShoppingBag, Sparkles, Search, Utensils, ChevronLeft, ChevronRight } from "lucide-react";
 import BottomNav from "@/components/customer/BottomNav";
 import { useCart } from "@/context/CartContext";
 import Link from "next/link";
@@ -19,6 +19,31 @@ interface MenuItemType {
   isVeg?: boolean;
 }
 
+const DEFAULT_CATEGORY_IMAGES: Record<string, string> = {
+  All: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=200&q=80",
+  Biryani: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=200&q=80",
+  Burger: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=200&q=80",
+  Pizza: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=200&q=80",
+  "Fried Rice": "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=200&q=80",
+  Noodles: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=200&q=80",
+  "Chai & Tea": "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=200&q=80",
+  Beverages: "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=200&q=80",
+  Paneer: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=200&q=80",
+  Starters: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?auto=format&fit=crop&w=200&q=80",
+  "South Indian": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=200&q=80",
+  Desserts: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=200&q=80",
+};
+
+const getCategoryImg = (catName: string, customImg?: string) => {
+  if (customImg && customImg.trim()) return customImg;
+  for (const key in DEFAULT_CATEGORY_IMAGES) {
+    if (catName.toLowerCase().includes(key.toLowerCase())) {
+      return DEFAULT_CATEGORY_IMAGES[key];
+    }
+  }
+  return "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=200&q=80";
+};
+
 export default function MenuPage() {
   const { cart, addToCart, updateQuantity } = useCart();
 
@@ -28,16 +53,187 @@ export default function MenuPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const itemsSectionRef = useRef<HTMLDivElement>(null);
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const [showLeftArrow, setShowLeftArrow] = useState<boolean>(false);
+  const [showRightArrow, setShowRightArrow] = useState<boolean>(false);
+  const isDraggingRef = useRef<boolean>(false);
+  const startXRef = useRef<number>(0);
+  const scrollLeftRef = useRef<number>(0);
+  const hasDraggedRef = useRef<boolean>(false);
+
+  // Auto-move animation refs
+  const isUserInteractingRef = useRef<boolean>(false);
+  const autoMoveTimerRef = useRef<any>(null);
+  const autoMoveDirectionRef = useRef<number>(1); // 1 = right, -1 = left
+  const autoMovePauseRef = useRef<boolean>(false);
+
+  const pauseAutoMoveTemporarily = (durationMs = 2500) => {
+    isUserInteractingRef.current = true;
+    if (autoMoveTimerRef.current) clearTimeout(autoMoveTimerRef.current);
+    autoMoveTimerRef.current = setTimeout(() => {
+      isUserInteractingRef.current = false;
+    }, durationMs);
+  };
+
+  const updateScrollArrows = () => {
+    const el = categoryScrollRef.current;
+    if (!el) return;
+    const canScrollLeft = el.scrollLeft > 10;
+    const canScrollRight = el.scrollLeft < el.scrollWidth - el.clientWidth - 10;
+    setShowLeftArrow(canScrollLeft);
+    setShowRightArrow(canScrollRight);
+  };
+
+  // Continuous smooth auto-move loop
+  useEffect(() => {
+    const el = categoryScrollRef.current;
+    if (!el) return;
+
+    let animationFrameId: number;
+    let lastTime = performance.now();
+
+    const animate = (time: number) => {
+      const delta = time - lastTime;
+      lastTime = time;
+
+      // Only auto-scroll when content overflows and user is not actively interacting
+      if (
+        !isUserInteractingRef.current &&
+        !autoMovePauseRef.current &&
+        el.scrollWidth > el.clientWidth + 10
+      ) {
+        // Speed: ~36 pixels per second (smooth, fluid glide)
+        const stepAmount = (36 / 1000) * Math.min(delta, 64);
+        const maxScroll = el.scrollWidth - el.clientWidth;
+
+        if (autoMoveDirectionRef.current === 1) {
+          if (el.scrollLeft >= maxScroll - 2) {
+            autoMovePauseRef.current = true;
+            setTimeout(() => {
+              autoMoveDirectionRef.current = -1;
+              autoMovePauseRef.current = false;
+            }, 1800);
+          } else {
+            el.scrollLeft += stepAmount;
+          }
+        } else {
+          if (el.scrollLeft <= 2) {
+            autoMovePauseRef.current = true;
+            setTimeout(() => {
+              autoMoveDirectionRef.current = 1;
+              autoMovePauseRef.current = false;
+            }, 1800);
+          } else {
+            el.scrollLeft -= stepAmount;
+          }
+        }
+        updateScrollArrows();
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      if (autoMoveTimerRef.current) clearTimeout(autoMoveTimerRef.current);
+    };
+  }, [categories]);
 
   useEffect(() => {
-    // Fetch categories
-    fetch("/api/menu/categories")
+    const el = categoryScrollRef.current;
+    if (!el) return;
+
+    const onScroll = () => {
+      updateScrollArrows();
+    };
+
+    const onWheel = (e: WheelEvent) => {
+      if (e.deltaY !== 0 && el.scrollWidth > el.clientWidth) {
+        e.preventDefault();
+        pauseAutoMoveTemporarily(2000);
+        el.scrollLeft += e.deltaY;
+        updateScrollArrows();
+      }
+    };
+
+    el.addEventListener("scroll", onScroll, { passive: true });
+    el.addEventListener("wheel", onWheel, { passive: false });
+
+    updateScrollArrows();
+    const timer = setTimeout(updateScrollArrows, 300);
+    window.addEventListener("resize", updateScrollArrows);
+
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      el.removeEventListener("wheel", onWheel);
+      clearTimeout(timer);
+      window.removeEventListener("resize", updateScrollArrows);
+    };
+  }, [categories]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const el = categoryScrollRef.current;
+    if (!el) return;
+    isUserInteractingRef.current = true;
+    isDraggingRef.current = true;
+    hasDraggedRef.current = false;
+    startXRef.current = e.pageX - el.offsetLeft;
+    scrollLeftRef.current = el.scrollLeft;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const el = categoryScrollRef.current;
+    if (!isDraggingRef.current || !el) return;
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - startXRef.current) * 1.5;
+    if (Math.abs(walk) > 6) {
+      hasDraggedRef.current = true;
+    }
+    el.scrollLeft = scrollLeftRef.current - walk;
+    updateScrollArrows();
+  };
+
+  const handleMouseUpOrLeave = () => {
+    isDraggingRef.current = false;
+    pauseAutoMoveTemporarily(2500);
+    setTimeout(() => {
+      hasDraggedRef.current = false;
+    }, 100);
+  };
+
+  const scrollCategory = (direction: "left" | "right") => {
+    if (!categoryScrollRef.current) return;
+    pauseAutoMoveTemporarily(3000);
+    const scrollAmount = direction === "left" ? -240 : 240;
+    categoryScrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    // Fetch categories safely
+    fetch("/api/menu/categories", { cache: "no-store", signal: controller.signal })
       .then((res) => res.json())
-      .then((data) => setCategories([{ _id: "All", name: "All" }, ...data]))
-      .catch(() => {});
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setCategories([{ _id: "All", name: "All" }, ...data]);
+        } else {
+          setCategories([{ _id: "All", name: "All" }]);
+        }
+      })
+      .catch((error) => {
+        if (error instanceof Error && error.name === "AbortError") return;
+        setCategories([{ _id: "All", name: "All" }]);
+      });
+
+    return () => controller.abort();
   }, []);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     setLoading(true);
     let url = "/api/menu";
     const params = new URLSearchParams();
@@ -52,25 +248,70 @@ export default function MenuPage() {
       url += `?${params.toString()}`;
     }
 
-    fetch(url)
+    fetch(url, { cache: "no-store", signal: controller.signal })
       .then((res) => res.json())
       .then((data) => {
-        setItems(data);
+        if (Array.isArray(data)) {
+          setItems(data);
+        } else {
+          setItems([]);
+        }
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((error) => {
+        if (error instanceof Error && error.name === "AbortError") return;
+        setItems([]);
+        setLoading(false);
+      });
+
+    return () => controller.abort();
   }, [selectedCategory, searchQuery]);
 
   const getItemQuantity = (id: string) => {
-    const found = cart.find((c) => c.menuItemId === id);
+    if (!Array.isArray(cart)) return 0;
+    const found = cart.find((c) => c && c.menuItemId === id);
     return found ? found.quantity : 0;
+  };
+
+  const isCategorySwitched = useRef(false);
+
+  useEffect(() => {
+    // Scroll smoothly to top of page when changing category so all content & 1st item are in full view
+    if (!loading && items.length > 0 && isCategorySwitched.current) {
+      isCategorySwitched.current = false;
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+  }, [loading, items]);
+
+  const handleCategoryClick = (catId: string, e?: React.MouseEvent<HTMLButtonElement>) => {
+    if (hasDraggedRef.current) return;
+    pauseAutoMoveTemporarily(4000);
+    isCategorySwitched.current = true;
+    setSelectedCategory(catId);
+    setSearchQuery("");
+
+    if (e?.currentTarget) {
+      e.currentTarget.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
+    }
   };
 
   return (
     <div className="flex-1 flex flex-col pb-36 md:pb-16 bg-[#FAF8F5]">
-      {/* Header Container */}
-      <header className="bg-white border-b border-[#E6E2D8]/80 sticky top-[64px] z-30 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
+      {/* Top Banner Carousel right after Navbar */}
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4">
+        <SwiggyBannerCarousel />
+      </div>
+
+      {/* Main Header (Title & Search - scrolls naturally) */}
+      <div className="bg-white mt-2 border-b border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h1 className="font-serif text-2xl sm:text-3xl font-extrabold text-[#0C3B2E]">
@@ -83,47 +324,119 @@ export default function MenuPage() {
 
             <div className="w-full sm:w-auto max-w-md">
               <SwiggyMenuSearch
+                query={searchQuery}
+                onQueryChange={setSearchQuery}
                 onSelectTag={(tag) => {
                   setSearchQuery(tag);
                 }}
               />
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Category Filter Pills */}
-          <div className="flex items-center space-x-2 overflow-x-auto no-scrollbar py-1">
+      {/* Zomato-Style Sticky Circular Category Selector Bar */}
+      <div className="bg-white border-b border-[#E6E2D8]/80 sticky top-[64px] z-30 shadow-xs select-none">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-2 relative group/catbar">
+          {/* Left Arrow Button */}
+          {showLeftArrow && (
+            <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center pl-1 sm:pl-2 bg-gradient-to-r from-white via-white/95 to-transparent pr-4 pointer-events-none">
+              <button
+                type="button"
+                onClick={() => scrollCategory("left")}
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white shadow-md border border-slate-200 text-[#0C3B2E] flex items-center justify-center pointer-events-auto hover:bg-[#0C3B2E] hover:text-white transition-all transform hover:scale-105 active:scale-95"
+                aria-label="Scroll categories left"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Right Arrow Button */}
+          {showRightArrow && (
+            <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center pr-1 sm:pr-2 bg-gradient-to-l from-white via-white/95 to-transparent pl-4 pointer-events-none">
+              <button
+                type="button"
+                onClick={() => scrollCategory("right")}
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white shadow-md border border-slate-200 text-[#0C3B2E] flex items-center justify-center pointer-events-auto hover:bg-[#0C3B2E] hover:text-white transition-all transform hover:scale-105 active:scale-95"
+                aria-label="Scroll categories right"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Scrollable Container with auto-move, drag & touch support */}
+          <div
+            ref={categoryScrollRef}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUpOrLeave}
+            onMouseLeave={handleMouseUpOrLeave}
+            onTouchStart={() => {
+              isUserInteractingRef.current = true;
+            }}
+            onTouchEnd={() => {
+              pauseAutoMoveTemporarily(2500);
+            }}
+            onMouseEnter={() => {
+              isUserInteractingRef.current = true;
+            }}
+            className="flex items-center space-x-3.5 sm:space-x-5 overflow-x-auto no-scrollbar py-1 px-2 cursor-grab active:cursor-grabbing select-none touch-pan-x"
+            style={{
+              WebkitOverflowScrolling: "touch",
+              touchAction: "pan-x",
+              overscrollBehaviorX: "contain",
+            }}
+          >
             {categories.map((cat) => {
               const isSelected = selectedCategory === cat._id;
+              const catImage = getCategoryImg(cat.name, cat.imageUrl);
+
               return (
                 <button
                   key={cat._id}
-                  onClick={() => {
-                    setSelectedCategory(cat._id);
-                    setSearchQuery("");
-                    // Scroll items section back to top on category switch
-                    setTimeout(() => {
-                      itemsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }, 50);
-                  }}
-                  className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                    isSelected
-                      ? "bg-[#0C3B2E] text-white shadow-md scale-105"
-                      : "bg-slate-100 text-slate-600 border border-[#E6E2D8] hover:bg-slate-200 hover:text-[#0C3B2E]"
-                  }`}
+                  type="button"
+                  onClick={(e) => handleCategoryClick(cat._id, e)}
+                  className="flex flex-col items-center space-y-1.5 shrink-0 group focus:outline-none cursor-pointer select-none"
                 >
-                  {cat.name}
+                  {/* Round Image Ring Container */}
+                  <div
+                    className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full p-0.5 transition-all duration-300 pointer-events-none ${
+                      isSelected
+                        ? "ring-3 ring-[#0C3B2E] ring-offset-2 scale-105 shadow-md bg-[#0C3B2E]"
+                        : "border-2 border-slate-200 group-hover:border-[#0C3B2E]/50 group-hover:scale-102 bg-white"
+                    }`}
+                  >
+                    <div className="w-full h-full rounded-full overflow-hidden relative border border-white/60">
+                      <img
+                        src={catImage}
+                        alt={cat.name}
+                        draggable={false}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 select-none pointer-events-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Category Name Label */}
+                  <span
+                    className={`text-[11px] sm:text-xs font-bold transition-all text-center max-w-[65px] sm:max-w-[80px] truncate select-none pointer-events-none ${
+                      isSelected
+                        ? "text-[#0C3B2E] font-extrabold underline decoration-2 underline-offset-4"
+                        : "text-slate-600 group-hover:text-[#0C3B2E]"
+                    }`}
+                  >
+                    {cat.name}
+                  </span>
                 </button>
               );
             })}
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Main Content Container - Max 7xl on desktop */}
       <main ref={itemsSectionRef} className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Banner Carousel */}
-        <SwiggyBannerCarousel />
-
         {/* Menu Items Section */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
@@ -169,12 +482,13 @@ export default function MenuPage() {
 
             {/* Desktop Grid Layout (3 columns on lg, 2 on md, 1 on sm) */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {items.map((item) => {
+              {items.map((item, index) => {
                 const qty = getItemQuantity(item._id);
 
                 return (
                   <div
                     key={item._id}
+                    id={index === 0 ? "first-menu-item" : undefined}
                     className="bg-white p-4 rounded-3xl border border-[#E6E2D8]/80 shadow-card-soft hover:shadow-lg transition-all duration-300 flex flex-col justify-between group hover:-translate-y-0.5"
                   >
                     <div className="flex space-x-4 items-start">
