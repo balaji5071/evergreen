@@ -3,6 +3,7 @@ import { connectToDatabase } from "@/lib/db";
 import { Order } from "@/lib/models/Order";
 import { requireAuthUser, requireAdminUser } from "@/lib/auth";
 import { notifyCustomerOrderStatus } from "@/lib/notificationsHelper";
+import { canTransitionOrderStatus, isValidOrderStatus } from "@/lib/orderStatus";
 
 export async function GET(
   req: Request,
@@ -55,11 +56,20 @@ export async function PUT(
     if (!orderStatus) {
       return NextResponse.json({ message: "Order status is required" }, { status: 400 });
     }
+    if (!isValidOrderStatus(orderStatus)) {
+      return NextResponse.json({ message: "Invalid order status" }, { status: 400 });
+    }
 
     await connectToDatabase();
     const order = await Order.findById(id);
     if (!order) {
       return NextResponse.json({ message: "Order not found" }, { status: 404 });
+    }
+    if (!canTransitionOrderStatus(order.orderStatus, orderStatus)) {
+      return NextResponse.json(
+        { message: `Cannot change order status from ${order.orderStatus} to ${orderStatus}` },
+        { status: 409 }
+      );
     }
 
     order.orderStatus = orderStatus;

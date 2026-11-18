@@ -8,39 +8,27 @@ export async function GET() {
       return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
     }
 
-    try {
-      const user = await requireAuthUser();
-      if (user) {
-        return NextResponse.json({
-          user: {
-            _id: user._id.toString(),
-            name: user.name,
-            email: user.email,
-            phone: user.phone || "",
-            role: user.role,
-            permissions: user.permissions || [],
-            employeeId: user.employeeId || "",
-            dutyStatus: user.dutyStatus || "Available",
-            notificationEnabled: user.notificationEnabled ?? true,
-          },
-        });
-      }
-    } catch (e) {
-      // Fallback to JWT payload if DB lookup delays
+    const user = await requireAuthUser();
+    if (user) {
+      return NextResponse.json({
+        user: {
+          _id: user._id.toString(),
+          name: user.name,
+          email: user.email,
+          phone: user.phone || "",
+          role: user.role,
+          permissions: user.permissions || [],
+          employeeId: user.employeeId || "",
+          dutyStatus: user.dutyStatus || "Available",
+          notificationEnabled: user.notificationEnabled ?? true,
+        },
+      });
     }
 
-    // Fast instant response from decoded JWT session cookie
+    // Do not return stale JWT authorization data when the database user is missing.
     return NextResponse.json({
-      user: {
-        _id: session.userId,
-        name: session.name,
-        email: session.email,
-        phone: "",
-        role: session.role,
-        permissions: session.permissions || [],
-        notificationEnabled: true,
-      },
-    });
+      message: "Session is no longer valid",
+    }, { status: 401 });
   } catch (error) {
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }

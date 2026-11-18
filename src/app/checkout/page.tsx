@@ -242,20 +242,26 @@ export default function CheckoutPage() {
       formattedAddress = `🎁 RECIPIENT: ${recipientName.trim()} (Ph: ${recipientPhone.trim()}) | ${formattedAddress}`;
     }
 
+    setLoading(true);
     try {
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: cart,
-          totalAmount: total,
-          address: {
-            title: isOrderingForSomeoneElse
-              ? `${addressTitle} (For ${recipientName.trim()})`
-              : addressTitle,
-            address: formattedAddress,
-          },
-        }),
+  items: cart,
+  totalAmount: total,
+  orderType: orderType,
+        couponCode: appliedCoupon,
+  address:
+    orderType === "Delivery"
+      ? {
+          title: isOrderingForSomeoneElse
+            ? `${addressTitle} (For ${recipientName.trim()})`
+            : addressTitle,
+          address: formattedAddress,
+        }
+      : null,
+}),
       });
 
       const data = await res.json();
@@ -283,31 +289,31 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col pb-36 md:pb-12 bg-[#FAF8F5]">
-      {/* Header Container */}
-      <header className="bg-white border-b border-[#E6E2D8]/80 sticky top-[64px] z-30 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center space-x-4">
+    <div className="flex-1 flex flex-col pb-36 md:pb-16 bg-[#FAF8F5] text-slate-900 font-sans">
+      {/* Header Container matching Evergreen Botanical Sage & Cream Hero */}
+      <header className="bg-gradient-to-br from-[#F7FBF8] via-[#EFF7F2] to-[#E6F2EB] border-b border-[#0C3B2E]/10 sticky top-20 z-30 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center gap-4">
           <Link
             href="/cart"
-            className="p-2.5 rounded-2xl bg-white border border-[#E6E2D8] text-[#0C3B2E] hover:bg-slate-50 transition shadow-xs"
+            className="w-10 h-10 rounded-full bg-white border border-[#0C3B2E]/15 text-[#0C3B2E] hover:bg-[#EAF5EF] flex items-center justify-center transition shadow-2xs shrink-0"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="font-serif text-2xl sm:text-3xl font-extrabold text-[#0C3B2E]">
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#0C3B2E] tracking-tight">
               Checkout Details
             </h1>
-            <p className="text-xs text-slate-500 font-medium">
-              Specify delivery address & review order finalization
-            </p>
+           <p className="text-xs text-slate-600">
+  Choose delivery or takeaway and complete your order
+</p>
           </div>
         </div>
       </header>
 
       {/* Main Content Container - Max 7xl on desktop */}
-      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         {error && (
-          <div className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm flex items-center space-x-2.5 shadow-sm">
+          <div className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm flex items-center gap-2.5 shadow-2xs">
             <AlertCircle className="w-5 h-5 shrink-0 text-red-600" />
             <span>{error}</span>
           </div>
@@ -318,14 +324,14 @@ export default function CheckoutPage() {
           {/* Left Column: Delivery Details & Address Forms (7 Cols) */}
           <div className="lg:col-span-7 space-y-6">
             {/* Delivery / Takeaway Toggle */}
-            <div className="p-1.5 bg-[#EAF5EF] rounded-2xl flex items-center border border-emerald-200">
+            <div className="p-1.5 bg-[#EAF5EF] rounded-full flex items-center border border-[#0C3B2E]/15">
               <button
                 type="button"
                 onClick={() => setOrderType("Delivery")}
-                className={`flex-1 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
+                className={`flex-1 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${
                   orderType === "Delivery"
-                    ? "bg-[#0C3B2E] text-white shadow-md"
-                    : "text-[#0C3B2E] hover:bg-white/50"
+                    ? "bg-[#0C3B2E] text-white shadow-xs"
+                    : "text-[#0C3B2E] hover:bg-white/60"
                 }`}
               >
                 🛵 Delivery
@@ -333,10 +339,10 @@ export default function CheckoutPage() {
               <button
                 type="button"
                 onClick={() => setOrderType("Takeaway")}
-                className={`flex-1 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
+                className={`flex-1 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${
                   orderType === "Takeaway"
-                    ? "bg-[#0C3B2E] text-white shadow-md"
-                    : "text-[#0C3B2E] hover:bg-white/50"
+                    ? "bg-[#0C3B2E] text-white shadow-xs"
+                    : "text-[#0C3B2E] hover:bg-white/60"
                 }`}
               >
                 🛍️ Takeaway
@@ -344,9 +350,9 @@ export default function CheckoutPage() {
             </div>
 
             {/* Contact Number */}
-            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-[#E6E2D8]/80 shadow-card-soft space-y-2">
-              <label className="text-xs font-bold text-[#0C3B2E] uppercase tracking-wider flex items-center space-x-2">
-                <Phone className="w-4 h-4 text-emerald-800" />
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-[#0C3B2E]/10 shadow-2xs space-y-2.5">
+              <label className="text-xs font-bold text-[#0C3B2E] uppercase tracking-wider flex items-center gap-2">
+                <Phone className="w-4 h-4 text-[#0C3B2E]" />
                 <span>Your Contact Phone Number *</span>
               </label>
               <input
@@ -355,22 +361,22 @@ export default function CheckoutPage() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+91 90900 10210"
-                className="w-full px-4 py-3 rounded-xl border border-[#E6E2D8] bg-slate-50 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
+                className="w-full px-4 py-3 rounded-xl border border-[#0C3B2E]/15 bg-[#FAF8F5] text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#0C3B2E] transition"
               />
             </div>
 
             {/* Feature: Ordering For Someone Else */}
-            <div className="bg-gradient-to-r from-amber-50/80 to-emerald-50/80 p-5 sm:p-6 rounded-3xl border border-amber-200/80 shadow-card-soft space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2.5 bg-amber-100 text-amber-800 rounded-2xl">
+            <div className="bg-gradient-to-br from-amber-300/20 to-[#EAF5EF] p-5 sm:p-6 rounded-3xl border border-amber-400/40 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-amber-300 text-[#0C3B2E] flex items-center justify-center shrink-0 shadow-2xs">
                     <Gift className="w-5 h-5" />
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-[#0C3B2E]">
                       Ordering for someone else?
                     </h4>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-600">
                       Send food directly to a friend, family, or hostel mate!
                     </p>
                   </div>
@@ -379,10 +385,10 @@ export default function CheckoutPage() {
                 <button
                   type="button"
                   onClick={() => setIsOrderingForSomeoneElse(!isOrderingForSomeoneElse)}
-                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer ${
+                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 ${
                     isOrderingForSomeoneElse
-                      ? "bg-[#0C3B2E] text-white shadow-md"
-                      : "bg-white text-slate-700 border border-slate-300 hover:bg-slate-50"
+                      ? "bg-[#0C3B2E] text-white shadow-xs"
+                      : "bg-white text-[#0C3B2E] border border-[#0C3B2E]/20 hover:bg-[#EAF5EF]"
                   }`}
                 >
                   {isOrderingForSomeoneElse ? "YES ✓" : "NO"}
@@ -391,10 +397,10 @@ export default function CheckoutPage() {
 
               {/* Recipient Details Inputs */}
               {isOrderingForSomeoneElse && (
-                <div className="pt-3 border-t border-amber-200/80 grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in duration-200">
+                <div className="pt-3 border-t border-amber-400/30 grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in duration-200">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#0C3B2E] uppercase flex items-center space-x-1">
-                      <User className="w-3.5 h-3.5 text-slate-400" />
+                    <label className="text-xs font-bold text-[#0C3B2E] uppercase flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5 text-[#0C3B2E]/70" />
                       <span>Recipient Name *</span>
                     </label>
                     <input
@@ -403,13 +409,13 @@ export default function CheckoutPage() {
                       value={recipientName}
                       onChange={(e) => setRecipientName(e.target.value)}
                       placeholder="e.g. Rahul Sharma"
-                      className="w-full px-4 py-2.5 rounded-xl border border-amber-300 bg-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#0C3B2E]/15 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:border-[#0C3B2E]"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#0C3B2E] uppercase flex items-center space-x-1">
-                      <Phone className="w-3.5 h-3.5 text-slate-400" />
+                    <label className="text-xs font-bold text-[#0C3B2E] uppercase flex items-center gap-1.5">
+                      <Phone className="w-3.5 h-3.5 text-[#0C3B2E]/70" />
                       <span>Recipient Phone Number *</span>
                     </label>
                     <input
@@ -418,7 +424,7 @@ export default function CheckoutPage() {
                       value={recipientPhone}
                       onChange={(e) => setRecipientPhone(e.target.value)}
                       placeholder="e.g. +91 98765 43210"
-                      className="w-full px-4 py-2.5 rounded-xl border border-amber-300 bg-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#0C3B2E]/15 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:border-[#0C3B2E]"
                     />
                   </div>
                 </div>
@@ -427,27 +433,27 @@ export default function CheckoutPage() {
 
             {/* Structured Delivery Address Section */}
             {orderType === "Delivery" && (
-              <div className="bg-white p-5 sm:p-6 rounded-3xl border border-[#E6E2D8]/80 shadow-card-soft space-y-5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E6E2D8]/60 pb-4 gap-3">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2.5 bg-[#EAF5EF] rounded-2xl text-[#0C3B2E]">
-                      <MapPin className="w-5 h-5" />
+              <div className="bg-white p-5 sm:p-6 rounded-3xl border border-[#0C3B2E]/10 shadow-2xs space-y-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#0C3B2E]/10 pb-4 gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-[#EAF5EF] border border-[#0C3B2E]/15 text-[#0C3B2E] flex items-center justify-center shrink-0">
+                      <MapPin className="w-4 h-4" />
                     </div>
-                    <h3 className="font-serif text-lg font-bold text-[#0C3B2E]">
+                    <h3 className="text-lg font-bold text-[#0C3B2E]">
                       Delivery Address
                     </h3>
                   </div>
 
                   {/* Saved Address vs New Address Switcher */}
-                  <div className="flex space-x-1 bg-slate-100 p-1 rounded-2xl">
+                  <div className="flex space-x-1 bg-[#EAF5EF] p-1 rounded-full border border-[#0C3B2E]/10">
                     {savedAddresses.length > 0 && (
                       <button
                         type="button"
                         onClick={() => setAddressMode("saved")}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                        className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer ${
                           addressMode === "saved"
-                            ? "bg-[#0C3B2E] text-white shadow-sm"
-                            : "text-slate-600 hover:text-slate-900"
+                            ? "bg-[#0C3B2E] text-white shadow-2xs"
+                            : "text-[#0C3B2E] hover:bg-white/60"
                         }`}
                       >
                         Saved Addresses
@@ -456,10 +462,10 @@ export default function CheckoutPage() {
                     <button
                       type="button"
                       onClick={handleUseNewAddress}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer ${
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer ${
                         addressMode === "new"
-                          ? "bg-[#0C3B2E] text-white shadow-sm"
-                          : "text-slate-600 hover:text-slate-900"
+                          ? "bg-[#0C3B2E] text-white shadow-2xs"
+                          : "text-[#0C3B2E] hover:bg-white/60"
                       }`}
                     >
                       <PlusCircle className="w-3.5 h-3.5" />
@@ -479,15 +485,26 @@ export default function CheckoutPage() {
                         <button
                           type="button"
                           onClick={() => setShowAllSavedAddresses(!showAllSavedAddresses)}
-                          className="text-xs font-bold text-[#0C3B2E] flex items-center space-x-1 hover:underline cursor-pointer bg-[#EAF5EF] px-2.5 py-1 rounded-lg border border-emerald-200"
+                          className="text-xs font-semibold text-[#0C3B2E] flex items-center gap-1 hover:underline cursor-pointer bg-[#EAF5EF] px-3 py-1 rounded-full border border-[#0C3B2E]/15"
                         >
-                          <span>{showAllSavedAddresses ? "Show Less" : `View All (${savedAddresses.length})`}</span>
-                          <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showAllSavedAddresses ? "rotate-180" : ""}`} />
+                          <span>
+                            {showAllSavedAddresses
+                              ? "Show Less"
+                              : `View All (${savedAddresses.length})`}
+                          </span>
+                          <ChevronDown
+                            className={`w-3.5 h-3.5 transition-transform ${
+                              showAllSavedAddresses ? "rotate-180" : ""
+                            }`}
+                          />
                         </button>
                       )}
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {(showAllSavedAddresses ? savedAddresses : savedAddresses.slice(0, 1)).map((addr) => {
+                      {(showAllSavedAddresses
+                        ? savedAddresses
+                        : savedAddresses.slice(0, 1)
+                      ).map((addr) => {
                         const isSelected = selectedAddressId === addr._id;
 
                         return (
@@ -497,17 +514,17 @@ export default function CheckoutPage() {
                               setAddressMode("saved");
                               handleSelectSavedAddress(addr);
                             }}
-                            className={`p-4 rounded-2xl border cursor-pointer transition-all duration-200 flex items-start space-x-3 ${
+                            className={`p-4 rounded-2xl border cursor-pointer transition-all duration-200 flex items-start gap-3 ${
                               isSelected
-                                ? "bg-[#EAF5EF] border-[#0C3B2E] shadow-sm scale-[1.02]"
-                                : "bg-slate-50 border-[#E6E2D8] hover:bg-slate-100"
+                                ? "bg-[#EAF5EF] border-[#0C3B2E] shadow-2xs"
+                                : "bg-[#FAF8F5] border-[#0C3B2E]/10 hover:bg-[#EAF5EF]/50"
                             }`}
                           >
                             <div
                               className={`p-2.5 rounded-xl shrink-0 ${
                                 isSelected
-                                  ? "bg-[#0C3B2E] text-white"
-                                  : "bg-white border text-slate-500"
+                                  ? "bg-[#0C3B2E] text-amber-300"
+                                  : "bg-white border border-[#0C3B2E]/10 text-[#0C3B2E]"
                               }`}
                             >
                               {addr.title === "Home" ? (
@@ -540,17 +557,17 @@ export default function CheckoutPage() {
                 )}
 
                 {/* Address Type Tag (Home / Work / Hostel) */}
-                <div className="flex items-center space-x-2 pt-1">
+                <div className="flex flex-wrap items-center gap-2 pt-1">
                   <span className="text-xs font-bold text-slate-500">Tag as:</span>
                   {["Home", "Work", "Hostel", "Other"].map((tag) => (
                     <button
                       key={tag}
                       type="button"
                       onClick={() => setAddressTitle(tag)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer ${
                         addressTitle === tag
-                          ? "bg-[#0C3B2E] text-white shadow-sm"
-                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                          ? "bg-[#0C3B2E] text-white shadow-2xs"
+                          : "bg-[#EAF5EF] text-[#0C3B2E] hover:bg-[#dceee4]"
                       }`}
                     >
                       {tag}
@@ -562,8 +579,8 @@ export default function CheckoutPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Field 1: House / Flat Number * */}
                   <div className="space-y-1.5 sm:col-span-2">
-                    <label className="text-xs font-bold text-[#0C3B2E] uppercase tracking-wider flex items-center space-x-1.5">
-                      <Building className="w-4 h-4 text-slate-400" />
+                    <label className="text-xs font-bold text-[#0C3B2E] uppercase tracking-wider flex items-center gap-1.5">
+                      <Building className="w-3.5 h-3.5 text-[#0C3B2E]/70" />
                       <span>House / Flat Number *</span>
                     </label>
                     <input
@@ -572,14 +589,14 @@ export default function CheckoutPage() {
                       value={houseNo}
                       onChange={(e) => setHouseNo(e.target.value)}
                       placeholder="e.g. Room 302, Hostel B or Flat 12A, Apple Apartments"
-                      className="w-full px-4 py-3 rounded-xl border border-[#E6E2D8] bg-slate-50 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
+                      className="w-full px-4 py-3 rounded-xl border border-[#0C3B2E]/15 bg-[#FAF8F5] text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#0C3B2E] transition"
                     />
                   </div>
 
                   {/* Field 2: Street / Area * */}
                   <div className="space-y-1.5 sm:col-span-2">
-                    <label className="text-xs font-bold text-[#0C3B2E] uppercase tracking-wider flex items-center space-x-1.5">
-                      <Navigation className="w-4 h-4 text-slate-400" />
+                    <label className="text-xs font-bold text-[#0C3B2E] uppercase tracking-wider flex items-center gap-1.5">
+                      <Navigation className="w-3.5 h-3.5 text-[#0C3B2E]/70" />
                       <span>Street / Area *</span>
                     </label>
                     <input
@@ -588,14 +605,14 @@ export default function CheckoutPage() {
                       value={streetArea}
                       onChange={(e) => setStreetArea(e.target.value)}
                       placeholder="e.g. Kalasalingam University Campus or Main Road"
-                      className="w-full px-4 py-3 rounded-xl border border-[#E6E2D8] bg-slate-50 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
+                      className="w-full px-4 py-3 rounded-xl border border-[#0C3B2E]/15 bg-[#FAF8F5] text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#0C3B2E] transition"
                     />
                   </div>
 
                   {/* Field 3: Landmark * */}
                   <div className="space-y-1.5 sm:col-span-2">
-                    <label className="text-xs font-bold text-[#0C3B2E] uppercase tracking-wider flex items-center space-x-1.5">
-                      <MapPin className="w-4 h-4 text-slate-400" />
+                    <label className="text-xs font-bold text-[#0C3B2E] uppercase tracking-wider flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-[#0C3B2E]/70" />
                       <span>Landmark *</span>
                     </label>
                     <input
@@ -604,7 +621,7 @@ export default function CheckoutPage() {
                       value={landmark}
                       onChange={(e) => setLandmark(e.target.value)}
                       placeholder="e.g. Near Central Library / Opposite Admin Block"
-                      className="w-full px-4 py-3 rounded-xl border border-[#E6E2D8] bg-slate-50 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
+                      className="w-full px-4 py-3 rounded-xl border border-[#0C3B2E]/15 bg-[#FAF8F5] text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#0C3B2E] transition"
                     />
                   </div>
 
@@ -621,10 +638,10 @@ export default function CheckoutPage() {
                         value={pincode}
                         onChange={(e) => handlePincodeChange(e.target.value)}
                         placeholder="e.g. 626126"
-                        className="w-full px-4 py-3 rounded-xl border border-[#E6E2D8] bg-slate-50 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
+                        className="w-full px-4 py-3 rounded-xl border border-[#0C3B2E]/15 bg-[#FAF8F5] text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#0C3B2E] transition"
                       />
                       {pincodeLoading && (
-                        <span className="absolute right-3 top-3 text-[10px] text-emerald-600 font-bold animate-pulse">
+                        <span className="absolute right-3 top-3 text-[10px] text-[#0C3B2E] font-bold animate-pulse">
                           Locating...
                         </span>
                       )}
@@ -641,7 +658,7 @@ export default function CheckoutPage() {
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
                       placeholder="e.g. Krishnankoil"
-                      className="w-full px-4 py-3 rounded-xl border border-[#E6E2D8] bg-slate-50 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
+                      className="w-full px-4 py-3 rounded-xl border border-[#0C3B2E]/15 bg-[#FAF8F5] text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#0C3B2E] transition"
                     />
                   </div>
 
@@ -656,30 +673,44 @@ export default function CheckoutPage() {
                       value={state}
                       onChange={(e) => setState(e.target.value)}
                       placeholder="e.g. Tamil Nadu"
-                      className="w-full px-4 py-3 rounded-xl border border-[#E6E2D8] bg-slate-50 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
+                      className="w-full px-4 py-3 rounded-xl border border-[#0C3B2E]/15 bg-[#FAF8F5] text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#0C3B2E] transition"
                     />
                   </div>
                 </div>
               </div>
             )}
-
+{orderType === "Takeaway" && (
+  <div className="bg-[#EAF5EF] p-5 sm:p-6 rounded-3xl border border-[#0C3B2E]/15">
+    <h3 className="text-lg font-bold text-[#0C3B2E]">
+      Takeaway Pickup
+    </h3>
+    <p className="text-sm text-slate-600 mt-2">
+      Your order will be freshly prepared and ready for
+      collection at Evergreen Cafe & Restaurant.
+    </p>
+  </div>
+)}
             {/* Payment Method - COD ONLY */}
-            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-[#E6E2D8]/80 shadow-card-soft space-y-3">
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-[#0C3B2E]/10 shadow-2xs space-y-3">
               <label className="text-xs font-bold text-[#0C3B2E] uppercase tracking-wider">
                 Payment Method
               </label>
               <div className="flex items-center justify-between p-4 rounded-2xl bg-[#EAF5EF] border border-[#0C3B2E]/20">
-                <div className="flex items-center space-x-3.5">
-                  <div className="p-2.5 bg-[#0C3B2E] text-amber-300 rounded-xl">
-                    <Banknote className="w-6 h-6" />
+                <div className="flex items-center gap-3.5">
+                  <div className="w-11 h-11 rounded-full bg-[#0C3B2E] text-amber-300 flex items-center justify-center shrink-0">
+                    <Banknote className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-[#0C3B2E]">Cash On Delivery (COD)</p>
-                    <p className="text-xs text-slate-500">Pay cash upon meal arrival</p>
+                    <p className="text-sm font-bold text-[#0C3B2E]">
+                      Cash On Delivery (COD)
+                    </p>
+                    <p className="text-xs text-slate-600">
+                      Pay cash upon meal arrival
+                    </p>
                   </div>
                 </div>
 
-                <span className="px-3 py-1 rounded-full bg-[#0C3B2E] text-white text-[11px] font-bold tracking-wider uppercase">
+                <span className="px-3.5 py-1 rounded-full bg-[#0C3B2E] text-amber-300 text-[11px] font-bold tracking-wider uppercase">
                   Selected
                 </span>
               </div>
@@ -687,18 +718,18 @@ export default function CheckoutPage() {
           </div>
 
           {/* Right Column: Sticky Order Summary & Action (5 Cols) */}
-          <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-6">
+          <div className="lg:col-span-5 lg:sticky lg:top-44 space-y-6">
             {/* Coupons Launcher Bar */}
-            <div className="bg-white p-5 rounded-3xl border border-[#E6E2D8]/80 shadow-card-soft space-y-2">
+            <div className="bg-white p-5 rounded-3xl border border-[#0C3B2E]/10 shadow-2xs">
               {appliedCoupon ? (
-                <div className="flex items-center justify-between p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs">
-                  <div className="flex items-center space-x-3">
-                    <Tag className="w-4 h-4 text-emerald-600" />
+                <div className="flex items-center justify-between p-3.5 bg-[#EAF5EF] rounded-2xl border border-[#0C3B2E]/20 text-xs">
+                  <div className="flex items-center gap-3">
+                    <Tag className="w-4 h-4 text-[#0C3B2E]" />
                     <div>
-                      <span className="font-bold text-emerald-900">
-                        Coupon '{appliedCoupon}' Active
+                      <span className="font-bold text-[#0C3B2E]">
+                        Coupon &apos;{appliedCoupon}&apos; Active
                       </span>
-                      <span className="text-xs text-emerald-700 font-semibold block mt-0.5">
+                      <span className="text-xs text-slate-600 font-semibold block mt-0.5">
                         Discount Saved: ₹{discountAmount}
                       </span>
                     </div>
@@ -715,9 +746,9 @@ export default function CheckoutPage() {
                 <button
                   type="button"
                   onClick={() => setIsCouponModalOpen(true)}
-                  className="w-full flex items-center justify-between p-3.5 bg-gradient-to-r from-amber-50/60 to-emerald-50/60 rounded-2xl border border-dashed border-[#0C3B2E]/30 hover:border-[#0C3B2E] transition cursor-pointer"
+                  className="w-full flex items-center justify-between p-3.5 bg-gradient-to-r from-[#F7FBF8] via-[#EFF7F2] to-[#E6F2EB] rounded-2xl border border-dashed border-[#0C3B2E]/25 hover:border-[#0C3B2E] transition cursor-pointer"
                 >
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center gap-3">
                     <span className="text-lg">🎟️</span>
                     <span className="font-bold text-xs sm:text-sm text-[#0C3B2E]">
                       Apply Promo Coupon
@@ -729,15 +760,18 @@ export default function CheckoutPage() {
             </div>
 
             {/* Order Summary Card */}
-            <div className="bg-white p-6 rounded-3xl border border-[#E6E2D8]/80 shadow-card-soft space-y-4">
-              <h3 className="font-serif text-xl font-bold text-[#0C3B2E] border-b border-[#E6E2D8]/60 pb-3">
+            <div className="bg-white p-6 rounded-3xl border border-[#0C3B2E]/10 shadow-2xs space-y-4">
+              <h3 className="text-lg font-bold text-[#0C3B2E] border-b border-[#0C3B2E]/10 pb-3.5">
                 Order Items Summary
               </h3>
 
               <div className="space-y-3 max-h-60 overflow-y-auto no-scrollbar pr-1">
                 {cart.map((item) => (
-                  <div key={item.menuItemId} className="flex justify-between items-center text-xs sm:text-sm">
-                    <span className="font-semibold text-slate-800 truncate max-w-[70%]">
+                  <div
+                    key={item.menuItemId}
+                    className="flex justify-between items-center text-xs sm:text-sm"
+                  >
+                    <span className="font-medium text-slate-800 truncate max-w-[70%]">
                       {item.quantity}x {item.name}
                     </span>
                     <span className="font-bold text-[#0C3B2E]">
@@ -747,30 +781,32 @@ export default function CheckoutPage() {
                 ))}
               </div>
 
-              <div className="border-t border-[#E6E2D8] pt-4 space-y-2 text-xs sm:text-sm text-slate-600">
+              <div className="border-t border-[#0C3B2E]/10 pt-4 space-y-2.5 text-xs sm:text-sm text-slate-600">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span className="font-semibold text-slate-800">₹{subtotal}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Packaging & Delivery</span>
-                  <span className="font-semibold text-slate-800">
-                    ₹{packagingFee + deliveryFee}
+                  <span className="font-semibold text-slate-900">
+                    ₹{subtotal}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Taxes & Fees</span>
-                  <span className="font-semibold text-slate-800">₹{taxes}</span>
+  <span>Packaging &amp; Delivery</span>
+  <span className="font-semibold text-slate-900">
+    ₹{packagingFee + (orderType === "Delivery" ? deliveryFee : 0)}
+  </span>
+</div>
+                <div className="flex justify-between">
+                  <span>Taxes &amp; Fees</span>
+                  <span className="font-semibold text-slate-900">₹{taxes}</span>
                 </div>
 
                 {discountAmount > 0 && (
-                  <div className="flex justify-between text-emerald-800 font-bold bg-emerald-50 p-2.5 rounded-xl border border-emerald-200">
+                  <div className="flex justify-between text-[#0C3B2E] font-bold bg-[#EAF5EF] px-3.5 py-2.5 rounded-2xl border border-[#0C3B2E]/15">
                     <span>Coupon Discount</span>
                     <span>-₹{discountAmount}</span>
                   </div>
                 )}
 
-                <div className="border-t border-[#E6E2D8] pt-4 flex justify-between items-center text-base font-extrabold text-[#0C3B2E]">
+                <div className="border-t border-[#0C3B2E]/10 pt-4 flex justify-between items-center text-base font-extrabold text-[#0C3B2E]">
                   <span>Total Payable</span>
                   <span className="text-xl text-[#0C3B2E]">₹{total}</span>
                 </div>
@@ -782,10 +818,10 @@ export default function CheckoutPage() {
                   type="button"
                   onClick={handlePlaceOrder}
                   disabled={loading}
-                  className="w-full py-4 rounded-2xl btn-emerald flex items-center justify-center space-x-2 text-base font-extrabold shadow-lg hover:shadow-xl transition-all cursor-pointer"
+                  className="w-full py-3.5 px-6 rounded-full bg-[#0C3B2E] hover:bg-[#145341] disabled:opacity-60 text-white flex items-center justify-center gap-2 text-sm sm:text-base font-semibold shadow-sm transition-all cursor-pointer"
                 >
                   <span>{loading ? "Placing Order..." : "PLACE ORDER"}</span>
-                  <ArrowRight className="w-5 h-5" />
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </div>

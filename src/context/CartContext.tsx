@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useAuth } from "./AuthContext";
 
 export interface CartItem {
@@ -46,6 +46,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [cart, setCart] = useState<CartItem[]>([]);
   const [couponData, setCouponData] = useState<CouponData | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const cartSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load guest cart from localStorage or DB on mount
   useEffect(() => {
@@ -108,15 +109,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const saveDBCart = async (updatedCart: CartItem[]) => {
     if (!user) return;
-    try {
-      await fetch("/api/cart", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: updatedCart }),
-      });
-    } catch (e) {
-      console.error("Failed to save cart to DB:", e);
-    }
+    if (cartSaveTimer.current) clearTimeout(cartSaveTimer.current);
+    cartSaveTimer.current = setTimeout(async () => {
+      try {
+        await fetch("/api/cart", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ items: updatedCart }),
+        });
+      } catch (e) {
+        console.error("Failed to save cart to DB:", e);
+      }
+    }, 250);
   };
 
   const addToCart = (item: { _id: string; name: string; price: number; imageUrl: string }) => {
@@ -191,15 +195,44 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Fetch store rules from Admin Store Settings
   useEffect(() => {
-    fetch("/api/settings")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && !data.message) {
-          setStoreSettings((prev) => ({ ...prev, ...data }));
-        }
-      })
-      .catch((err) => console.error("CartContext settings load error:", err));
-  }, []);
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch("/api/settings");
+
+      if (!res.ok) {
+        throw new Error(
+          `Settings API failed: ${res.status} ${res.statusText}`
+        );
+      }
+
+      const text = await res.text();
+
+      if (!text.trim()) {
+        console.warn("Settings API returned an empty response.");
+        return;
+      }
+
+      let data;
+
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("Settings API returned invalid JSON.");
+      }
+
+      if (data && !data.message && typeof data === "object") {
+        setStoreSettings((prev) => ({
+          ...prev,
+          ...data,
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to fetch store settings:", error);
+    }
+  };
+
+  fetchSettings();
+}, []);
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const totalItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);

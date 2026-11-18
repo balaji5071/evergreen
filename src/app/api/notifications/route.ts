@@ -39,7 +39,10 @@ export async function PUT(req: Request) {
     }
 
     if (notificationId) {
-      await Notification.findByIdAndUpdate(notificationId, { read: true });
+      await Notification.findOneAndUpdate(
+        { _id: notificationId, userId: user._id },
+        { read: true }
+      );
       return NextResponse.json({ success: true });
     }
 

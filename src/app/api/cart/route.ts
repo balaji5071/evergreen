@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import { Cart } from "@/lib/models/Cart";
 import { requireAuthUser } from "@/lib/auth";
+import { normalizeCartItems } from "@/lib/pricing";
 
 export async function GET() {
   try {
@@ -45,16 +46,18 @@ export async function PUT(req: Request) {
 
     const { items } = await req.json();
     await connectToDatabase();
+    let normalized;
+    try {
+      normalized = await normalizeCartItems(items || []);
+    } catch (error: any) {
+      return NextResponse.json({ message: error.message }, { status: 400 });
+    }
 
-    const formattedDbItems = (items || []).map((i: any) => ({
-      menuItemId: i.menuItemId,
-      quantity: i.quantity,
+    const formattedDbItems = normalized.items.map((item) => ({
+      menuItemId: item.menuItemId,
+      quantity: item.quantity,
     }));
-
-    const total = (items || []).reduce(
-      (acc: number, i: any) => acc + i.price * i.quantity,
-      0
-    );
+    const total = normalized.subtotal;
 
     let cart = await Cart.findOne({ userId: user._id });
     if (!cart) {
@@ -64,7 +67,7 @@ export async function PUT(req: Request) {
         total,
       });
     } else {
-      cart.items = formattedDbItems;
+      cart.items = formattedDbItems as any;
       cart.total = total;
       await cart.save();
     }

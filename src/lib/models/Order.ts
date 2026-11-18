@@ -5,7 +5,7 @@ export interface IOrderItem {
   name: string;
   price: number;
   quantity: number;
-  imageUrl: string;
+  imageUrl: string; 
 }
 
 export type OrderStatus =
@@ -27,13 +27,14 @@ export interface IOrder extends Document {
   userId: mongoose.Types.ObjectId;
   items: IOrderItem[];
   totalAmount: number;
+  orderType: "Delivery" | "Takeaway";
   paymentMethod: string;
   paymentStatus: "Pending" | "Completed" | "Failed";
   orderStatus: OrderStatus;
   address: {
     title?: string;
     address: string;
-  };
+  } | null;
   latitude?: number;
   longitude?: number;
   deliveredAt?: Date;
@@ -66,10 +67,28 @@ const OrderSchema = new Schema<IOrder>(
       enum: ["Placed", "Accepted", "Preparing", "Ready", "Out for Delivery", "Delivered", "Cancelled"],
       default: "Placed",
     },
+    orderType: {
+  type: String,
+  enum: ["Delivery", "Takeaway"],
+  required: true,
+  default: "Delivery",
+},
+
+address: {
+  type: {
+    title: { type: String, default: "Home" },
     address: {
-      title: { type: String, default: "Home" },
-      address: { type: String, required: true },
+      type: String,
+      required: function (this: any) {
+        return this.orderType === "Delivery";
+      },
     },
+  },
+  required: function (this: any) {
+    return this.orderType === "Delivery";
+  },
+  default: null,
+},
     latitude: { type: Number },
     longitude: { type: Number },
     deliveredAt: { type: Date },
@@ -85,6 +104,10 @@ const OrderSchema = new Schema<IOrder>(
   },
   { timestamps: true }
 );
+
+OrderSchema.index({ userId: 1, createdAt: -1 });
+OrderSchema.index({ orderStatus: 1, createdAt: -1 });
+OrderSchema.index({ deliveredBy: 1, orderStatus: 1 });
 
 if (mongoose.models.Order) {
   delete mongoose.models.Order;

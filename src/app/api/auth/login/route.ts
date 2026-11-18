@@ -3,6 +3,14 @@ import { connectToDatabase } from "@/lib/db";
 import { User } from "@/lib/models/User";
 import { comparePassword, signToken, hashPassword } from "@/lib/auth";
 
+declare global {
+  var evergreenLoginAttempts: Map<string, { count: number; resetAt: number }> | undefined;
+}
+
+const loginAttempts =
+  globalThis.evergreenLoginAttempts ||
+  (globalThis.evergreenLoginAttempts = new Map());
+
 export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
@@ -15,8 +23,28 @@ export async function POST(req: Request) {
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const envAdminEmail = (process.env.ADMIN_EMAIL || "admin@evergreen.com").trim().toLowerCase();
-    const envAdminPassword = process.env.ADMIN_PASSWORD || "admin123";
+    const now = Date.now();
+    const attempt = loginAttempts.get(cleanEmail);
+    if (attempt && attempt.resetAt > now && attempt.count >= 5) {
+      return NextResponse.json(
+        { message: "Too many login attempts. Please try again later." },
+        { status: 429 }
+      );
+    }
+    if (!attempt || attempt.resetAt <= now) {
+      loginAttempts.set(cleanEmail, { count: 1, resetAt: now + 15 * 60 * 1000 });
+    } else {
+      attempt.count += 1;
+    }
+    const envAdminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+    const envAdminPassword = process.env.ADMIN_PASSWORD;
+    if (!envAdminEmail || !envAdminPassword) {
+      console.error("ADMIN_EMAIL and ADMIN_PASSWORD must be configured.");
+      return NextResponse.json(
+        { message: "Server authentication is not configured." },
+        { status: 503 }
+      );
+    }
     const envAdminName = process.env.ADMIN_NAME || "Evergreen Admin";
     const envAdminPhone = process.env.ADMIN_PHONE || "+91 9876543210";
 
@@ -69,6 +97,8 @@ export async function POST(req: Request) {
         );
       }
     }
+
+    loginAttempts.delete(cleanEmail);
 
     const token = signToken({
       userId: user._id.toString(),

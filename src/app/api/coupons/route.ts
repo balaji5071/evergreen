@@ -6,6 +6,10 @@ import { notifyAllUsersNewCoupon } from "@/lib/notificationsHelper";
 
 export async function GET() {
   try {
+    const admin = await requireAdminUser();
+    if (!admin) {
+      return NextResponse.json({ message: "Unauthorized. Admin required." }, { status: 403 });
+    }
     await connectToDatabase();
     const coupons = await Coupon.find({}).sort({ createdAt: -1 }).lean();
     
@@ -46,6 +50,12 @@ export async function POST(req: Request) {
     } = body;
 
     const val = Number(discountValue !== undefined ? discountValue : discount);
+    if (!["percentage", "flat"].includes(discountType)) {
+      return NextResponse.json({ message: "Invalid discount type" }, { status: 400 });
+    }
+    if (discountType === "percentage" && (val <= 0 || val > 100)) {
+      return NextResponse.json({ message: "Percentage discount must be between 0 and 100" }, { status: 400 });
+    }
 
     if (!code || isNaN(val) || val <= 0) {
       return NextResponse.json(
@@ -107,6 +117,16 @@ export async function PUT(req: Request) {
     const { id, ...updateData } = body;
     if (!id) {
       return NextResponse.json({ message: "Coupon ID is required" }, { status: 400 });
+    }
+    if (updateData.discountType && !["percentage", "flat"].includes(updateData.discountType)) {
+      return NextResponse.json({ message: "Invalid discount type" }, { status: 400 });
+    }
+    if (
+      updateData.discountType === "percentage" &&
+      updateData.discountValue !== undefined &&
+      (Number(updateData.discountValue) <= 0 || Number(updateData.discountValue) > 100)
+    ) {
+      return NextResponse.json({ message: "Percentage discount must be between 0 and 100" }, { status: 400 });
     }
 
     await connectToDatabase();

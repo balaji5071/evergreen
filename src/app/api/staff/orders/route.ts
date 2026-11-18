@@ -4,6 +4,9 @@ import { Order } from "@/lib/models/Order";
 import { requireStaffOrAdminUser } from "@/lib/auth";
 import { sendPushNotificationToUser } from "@/lib/webpush";
 import { notifyCustomerOrderStatus } from "@/lib/notificationsHelper";
+import { canTransitionOrderStatus, isValidOrderStatus } from "@/lib/orderStatus";
+import { User } from "@/lib/models/User";
+import mongoose from "mongoose";
 
 export async function GET(req: Request) {
   try {
@@ -39,15 +42,37 @@ export async function PUT(req: Request) {
     if (!orderId || !orderStatus) {
       return NextResponse.json({ message: "Missing orderId or orderStatus" }, { status: 400 });
     }
+    if (!isValidOrderStatus(orderStatus)) {
+      return NextResponse.json({ message: "Invalid order status" }, { status: 400 });
+    }
 
     const order = await Order.findById(orderId);
     if (!order) {
       return NextResponse.json({ message: "Order not found" }, { status: 404 });
     }
+    if (!canTransitionOrderStatus(order.orderStatus, orderStatus)) {
+      return NextResponse.json(
+        { message: `Cannot change order status from ${order.orderStatus} to ${orderStatus}` },
+        { status: 409 }
+      );
+    }
 
     order.orderStatus = orderStatus;
 
     if (deliveredBy) {
+      if (staffUser.role !== "Admin") {
+        return NextResponse.json(
+          { message: "Only admins can assign a delivery partner." },
+          { status: 403 }
+        );
+      }
+      if (!mongoose.isValidObjectId(deliveredBy)) {
+        return NextResponse.json({ message: "Invalid delivery partner ID" }, { status: 400 });
+      }
+      const assignee = await User.findById(deliveredBy).select("_id role");
+      if (!assignee || !["Staff", "Delivery", "Admin"].includes(assignee.role)) {
+        return NextResponse.json({ message: "Invalid delivery partner" }, { status: 400 });
+      }
       order.deliveredBy = deliveredBy;
     } else if ((orderStatus === "Out for Delivery" || orderStatus === "Delivered") && !order.deliveredBy) {
       order.deliveredBy = staffUser._id;

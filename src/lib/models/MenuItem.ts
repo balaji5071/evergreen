@@ -21,5 +21,7 @@ const MenuItemSchema = new Schema<IMenuItem>(
   { timestamps: true }
 );
 
+MenuItemSchema.index({ categoryId: 1, available: 1, createdAt: -1 });
+
 export const MenuItem: Model<IMenuItem> =
   mongoose.models.MenuItem || mongoose.model<IMenuItem>("MenuItem", MenuItemSchema);

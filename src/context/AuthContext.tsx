@@ -7,7 +7,7 @@ export interface UserData {
   name: string;
   email: string;
   phone: string;
-  role: "Customer" | "Admin" | "Staff";
+  role: "Customer" | "Admin" | "Staff" | "Delivery";
   permissions?: string[];
   employeeId?: string;
   dutyStatus?: string;

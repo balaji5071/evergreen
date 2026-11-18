@@ -21,5 +21,7 @@ const AddressSchema = new Schema<IAddress>(
   { timestamps: true }
 );
 
+AddressSchema.index({ userId: 1, createdAt: -1 });
+
 export const Address: Model<IAddress> =
   mongoose.models.Address || mongoose.model<IAddress>("Address", AddressSchema);

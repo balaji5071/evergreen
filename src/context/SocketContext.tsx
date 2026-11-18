@@ -153,7 +153,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
-  // Auto-polling interval every 4 seconds for logged in user
+  // Polling fallback; Socket.IO handles real-time events when available.
   useEffect(() => {
     if (!user) return;
 
@@ -161,7 +161,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     const interval = setInterval(() => {
       fetchNotifications();
-    }, 4000);
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [user]);

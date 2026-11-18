@@ -6,6 +6,8 @@ import { requireAuthUser } from "@/lib/auth";
 import { notifyAdminsAndStaffNewOrder } from "@/lib/orderNotifications";
 import { Address } from "@/lib/models/Address";
 import { Server } from "socket.io";
+import mongoose from "mongoose";
+import { getServerCart, calculateCheckoutTotal } from "@/lib/pricing";
 
 export async function GET() {
   try {
@@ -30,9 +32,11 @@ export async function GET() {
   }
 }
 
+
 export async function POST(req: Request) {
   try {
     const user = await requireAuthUser();
+
     if (!user) {
       return NextResponse.json(
         { message: "Authentication required to place an order. Please log in or sign up." },
@@ -40,37 +44,100 @@ export async function POST(req: Request) {
       );
     }
 
-    const { items, totalAmount, address, latitude, longitude } = await req.json();
+    const {
+      totalAmount: ignoredClientTotal,
+      orderType,
+      address,
+      latitude,
+      longitude,
+      couponCode,
+    } = await req.json();
 
-    if (!items || items.length === 0) {
-      return NextResponse.json({ message: "Cart is empty" }, { status: 400 });
-    }
-
-    if (!address || !address.address) {
-      return NextResponse.json({ message: "Delivery address is required" }, { status: 400 });
+    // Validate order type
+    if (!["Delivery", "Takeaway"].includes(orderType)) {
+      return NextResponse.json(
+        { message: "Invalid order type" },
+        { status: 400 }
+      );
     }
 
     await connectToDatabase();
 
+    const serverCart = await getServerCart(user._id);
+    if (serverCart.items.length === 0) {
+      return NextResponse.json(
+        { message: "Cart is empty" },
+        { status: 400 }
+      );
+    }
+
+    // Require address ONLY for Delivery
+    if (
+      orderType === "Delivery" &&
+      (!address || !address.address?.trim())
+    ) {
+      return NextResponse.json(
+        { message: "Delivery address is required" },
+        { status: 400 }
+      );
+    }
+
+    let discountAmount = 0;
+    if (couponCode) {
+      const Coupon = (await import("@/lib/models/Coupon")).Coupon;
+      const coupon = await Coupon.findOne({
+        code: String(couponCode).toUpperCase().trim(),
+        active: true,
+        $or: [{ validTill: { $exists: false } }, { validTill: { $gt: new Date() } }],
+      });
+      if (!coupon) {
+        return NextResponse.json({ message: "Invalid or inactive coupon code" }, { status: 400 });
+      }
+      if (serverCart.subtotal < coupon.minOrderAmount) {
+        return NextResponse.json({ message: "Coupon minimum order amount is not met" }, { status: 400 });
+      }
+      const value = coupon.discountValue !== undefined ? coupon.discountValue : coupon.discount || 0;
+      discountAmount =
+        coupon.discountType === "flat"
+          ? value
+          : Math.round((serverCart.subtotal * value) / 100);
+      if (coupon.maxDiscountAmount && coupon.maxDiscountAmount > 0) {
+        discountAmount = Math.min(discountAmount, coupon.maxDiscountAmount);
+      }
+    }
+
+    const itemCount = serverCart.items.reduce((sum, item) => sum + item.quantity, 0);
+    const pricing = await calculateCheckoutTotal(
+      serverCart.subtotal,
+      orderType,
+      discountAmount,
+      itemCount
+    );
+
     const newOrder = await Order.create({
       userId: user._id,
-      items,
-      totalAmount,
+      items: serverCart.items,
+      totalAmount: pricing.total,
+      orderType,
       paymentMethod: "Cash On Delivery",
       paymentStatus: "Pending",
       orderStatus: "Placed",
-      address,
-      latitude,
-      longitude,
+      address: orderType === "Delivery" ? address : null,
+      latitude: orderType === "Delivery" ? latitude : undefined,
+      longitude: orderType === "Delivery" ? longitude : undefined,
     });
 
     // Clear user DB cart
-    await Cart.findOneAndUpdate({ userId: user._id }, { items: [], total: 0 });
+    await Cart.findOneAndUpdate(
+      { userId: user._id },
+      { items: [], total: 0 }
+    );
 
-    // Auto-save address to user's saved addresses for future order suggestions
-    if (address && address.address) {
+    // Auto-save address ONLY for Delivery
+    if (orderType === "Delivery" && address?.address) {
       try {
         const cleanAddressStr = address.address.trim();
+
         const existingAddress = await Address.findOne({
           userId: user._id,
           address: cleanAddressStr,
@@ -85,7 +152,6 @@ export async function POST(req: Request) {
             longitude: longitude || undefined,
           });
         } else {
-          // Touch updatedAt to ensure it appears as most recent
           existingAddress.updatedAt = new Date();
           await existingAddress.save();
         }
@@ -94,8 +160,10 @@ export async function POST(req: Request) {
       }
     }
 
+    // Notify admins and staff
     try {
       const io = (globalThis as any).__socketIoServer as Server | undefined;
+
       if (io) {
         io.emit("new_order", {
           orderId: newOrder._id.toString(),
@@ -109,14 +177,21 @@ export async function POST(req: Request) {
       console.error("Socket emit error for new order:", socketErr);
     }
 
-    // Notify all Admins and Staff with order management permissions
-    notifyAdminsAndStaffNewOrder(newOrder, user.name || "Customer").catch((err) => {
+    notifyAdminsAndStaffNewOrder(
+      newOrder,
+      user.name || "Customer"
+    ).catch((err) => {
       console.error("Order notification dispatch error:", err);
     });
 
     return NextResponse.json(newOrder, { status: 201 });
+
   } catch (error: any) {
     console.error("Place order error:", error);
-    return NextResponse.json({ message: "Failed to place order" }, { status: 500 });
+
+    return NextResponse.json(
+      { message: "Failed to place order" },
+      { status: 500 }
+    );
   }
 }

@@ -83,6 +83,9 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+    if (!["Admin", "Staff", "Delivery"].includes(role)) {
+      return NextResponse.json({ message: "Invalid account role." }, { status: 400 });
+    }
 
     await connectToDatabase();
 

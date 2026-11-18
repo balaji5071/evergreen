@@ -12,7 +12,7 @@ export interface IUser extends Document {
   email: string;
   phone: string;
   passwordHash: string;
-  role: "Customer" | "Admin" | "Staff";
+  role: "Customer" | "Admin" | "Staff" | "Delivery";
   permissions?: string[];
   employeeId?: string;
   dutyStatus?: "Available" | "Busy" | "Offline";
@@ -37,7 +37,7 @@ const UserSchema = new Schema<IUser>(
     passwordHash: { type: String, required: true },
     role: {
       type: String,
-      enum: ["Customer", "Admin", "Staff"],
+      enum: ["Customer", "Admin", "Staff", "Delivery"],
       default: "Customer",
     },
     permissions: {

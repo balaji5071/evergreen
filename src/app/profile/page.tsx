@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  User,
   MapPin,
   HelpCircle,
   LogOut,
@@ -49,8 +48,8 @@ export default function ProfilePage() {
     return (
       <div className="flex-1 flex flex-col p-6 bg-[#FAF8F5]">
         <div className="max-w-7xl mx-auto w-full space-y-6">
-          <div className="h-20 bg-slate-200 animate-pulse rounded-3xl mt-6" />
-          <div className="h-40 bg-slate-200 animate-pulse rounded-3xl mt-4" />
+          <div className="h-20 bg-white border border-[#0C3B2E]/10 animate-pulse rounded-3xl mt-6" />
+          <div className="h-44 bg-white border border-[#0C3B2E]/10 animate-pulse rounded-3xl mt-4" />
         </div>
       </div>
     );
@@ -58,25 +57,29 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="flex-1 flex flex-col pb-24 md:pb-12 bg-[#FAF8F5]">
-        <header className="bg-white border-b border-[#E6E2D8]/80 sticky top-[64px] z-30 shadow-xs">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <h1 className="font-serif text-2xl sm:text-3xl font-extrabold text-[#0C3B2E]">Profile</h1>
+      <div className="flex-1 flex flex-col pb-24 md:pb-12 bg-[#FAF8F5] text-slate-900 font-sans">
+        <header className="bg-gradient-to-br from-[#F7FBF8] via-[#EFF7F2] to-[#E6F2EB] border-b border-[#0C3B2E]/10 sticky top-20 z-30 backdrop-blur-md">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#0C3B2E] tracking-tight">
+              Profile
+            </h1>
           </div>
         </header>
         <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center py-20 px-6 space-y-4 bg-white rounded-3xl border border-[#E6E2D8] max-w-lg mx-auto shadow-card-soft">
-            <div className="w-20 h-20 rounded-full bg-[#EAF5EF] text-[#0C3B2E] flex items-center justify-center mx-auto text-3xl shadow-sm">
+          <div className="text-center py-20 px-6 space-y-4 bg-white rounded-3xl border border-[#0C3B2E]/10 max-w-lg mx-auto shadow-2xs">
+            <div className="w-20 h-20 rounded-full bg-[#EAF5EF] border border-[#0C3B2E]/10 text-[#0C3B2E] flex items-center justify-center mx-auto text-3xl shadow-2xs">
               👤
             </div>
-            <h2 className="font-serif text-2xl font-bold text-[#0C3B2E]">Sign in to your profile</h2>
-            <p className="text-xs sm:text-sm text-slate-500 max-w-xs mx-auto">
+            <h2 className="text-2xl font-bold text-[#0C3B2E]">
+              Sign in to your profile
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 max-w-xs mx-auto leading-relaxed">
               Log in to manage saved addresses, track active orders, and customize preferences.
             </p>
             <div className="pt-2">
               <Link
                 href="/login"
-                className="inline-flex items-center px-8 py-3.5 rounded-2xl btn-emerald text-sm font-bold shadow-lg hover:shadow-xl transition"
+                className="inline-flex items-center px-8 py-3.5 rounded-full bg-[#0C3B2E] hover:bg-[#145341] text-white text-sm font-semibold shadow-sm transition"
               >
                 Sign In / Sign Up
               </Link>
@@ -89,15 +92,15 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col pb-36 md:pb-12 bg-[#FAF8F5]">
-      {/* Header Container */}
-      <header className="bg-white border-b border-[#E6E2D8]/80 sticky top-[64px] z-30 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+    <div className="flex-1 flex flex-col pb-36 md:pb-16 bg-[#FAF8F5] text-slate-900 font-sans">
+      {/* Header Container matching Evergreen Botanical Sage & Cream Theme */}
+      <header className="bg-gradient-to-br from-[#F7FBF8] via-[#EFF7F2] to-[#E6F2EB] border-b border-[#0C3B2E]/10 sticky top-20 z-30 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between gap-4">
           <div>
-            <h1 className="font-serif text-2xl sm:text-3xl font-extrabold text-[#0C3B2E]">
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#0C3B2E] tracking-tight">
               Account Profile
             </h1>
-            <p className="text-xs text-slate-500 font-medium">
+            <p className="text-xs text-slate-600">
               Manage personal information, addresses, and settings
             </p>
           </div>
@@ -105,7 +108,7 @@ export default function ProfilePage() {
           {user.role === "Admin" && (
             <Link
               href="/admin"
-              className="px-4 py-2 rounded-full bg-[#0C3B2E] text-amber-300 text-xs font-bold shadow-md hover:bg-[#082920] transition"
+              className="px-4 py-2 rounded-full bg-[#0C3B2E] hover:bg-[#145341] text-amber-300 text-xs font-bold shadow-2xs transition"
             >
               Admin Panel
             </Link>
@@ -114,43 +117,49 @@ export default function ProfilePage() {
       </header>
 
       {/* Main Content Container - Max 7xl on desktop */}
-      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: User Card & Stats (5 Cols) */}
           <div className="lg:col-span-5 space-y-6">
             {/* User Details Card */}
-            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#E6E2D8]/80 shadow-card-soft flex items-center space-x-5">
-              <div className="w-20 h-20 rounded-full bg-[#0C3B2E] text-amber-300 flex items-center justify-center font-serif text-3xl font-bold border-4 border-emerald-700 shrink-0 shadow-md">
+            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#0C3B2E]/10 shadow-2xs flex items-center gap-5">
+              <div className="w-20 h-20 rounded-full bg-[#0C3B2E] text-amber-300 flex items-center justify-center text-3xl font-extrabold ring-4 ring-[#EAF5EF] shrink-0 shadow-2xs">
                 {user.name ? user.name.charAt(0).toUpperCase() : "U"}
               </div>
               <div className="flex-1 min-w-0">
-                <h2 className="font-serif text-2xl font-bold text-[#0C3B2E] truncate">
+                <h2 className="text-2xl font-bold text-[#0C3B2E] truncate">
                   {user.name}
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-500 truncate mt-0.5">{user.email}</p>
+                <p className="text-xs sm:text-sm text-slate-500 truncate mt-0.5">
+                  {user.email}
+                </p>
                 <ChangePhoneInline phone={user.phone} onUpdated={refreshUser} />
               </div>
             </div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-[#0C3B2E] text-white p-5 rounded-3xl shadow-md flex items-center space-x-4">
-                <div className="p-3 bg-white/10 rounded-2xl">
-                  <Package className="w-6 h-6 text-amber-300" />
+              <div className="bg-gradient-to-br from-[#0C3B2E] to-[#155240] text-white p-5 rounded-3xl shadow-2xs flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-full bg-white/10 border border-white/15 flex items-center justify-center shrink-0">
+                  <Package className="w-5 h-5 text-amber-300" />
                 </div>
                 <div>
-                  <p className="text-2xl font-black">{stats.ordersCount}</p>
-                  <p className="text-xs text-emerald-100 font-medium">Total Orders</p>
+                  <p className="text-2xl font-extrabold">{stats.ordersCount}</p>
+                  <p className="text-xs text-emerald-100/85 font-medium">
+                    Total Orders
+                  </p>
                 </div>
               </div>
 
-              <div className="bg-[#EAF5EF] text-[#0C3B2E] p-5 rounded-3xl border border-emerald-200 flex items-center space-x-4">
-                <div className="p-3 bg-white rounded-2xl shadow-sm">
-                  <MapPin className="w-6 h-6 text-[#0C3B2E]" />
+              <div className="bg-white text-[#0C3B2E] p-5 rounded-3xl border border-[#0C3B2E]/10 shadow-2xs flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-full bg-[#EAF5EF] border border-[#0C3B2E]/15 flex items-center justify-center shrink-0">
+                  <MapPin className="w-5 h-5 text-[#0C3B2E]" />
                 </div>
                 <div>
-                  <p className="text-2xl font-black">{stats.addressesCount}</p>
-                  <p className="text-xs text-slate-600 font-medium">Saved Addresses</p>
+                  <p className="text-2xl font-extrabold">{stats.addressesCount}</p>
+                  <p className="text-xs text-slate-600 font-medium">
+                    Saved Addresses
+                  </p>
                 </div>
               </div>
             </div>
@@ -159,54 +168,62 @@ export default function ProfilePage() {
           {/* Right Column: Settings & Navigation (7 Cols) */}
           <div className="lg:col-span-7 space-y-6">
             {/* Account Settings List */}
-            <div className="bg-white rounded-3xl border border-[#E6E2D8]/80 shadow-card-soft overflow-hidden">
-              <div className="px-6 py-4 border-b border-[#E6E2D8]/60 bg-slate-50/50">
+            <div className="bg-white rounded-3xl border border-[#0C3B2E]/10 shadow-2xs overflow-hidden">
+              <div className="px-6 py-4 border-b border-[#0C3B2E]/10 bg-[#F7FBF8]">
                 <h3 className="text-xs font-bold text-[#0C3B2E] uppercase tracking-wider">
                   Account Management
                 </h3>
               </div>
 
-              <div className="divide-y divide-[#E6E2D8]/50">
+              <div className="divide-y divide-[#0C3B2E]/10">
                 <Link
                   href="/profile/addresses"
-                  className="px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition cursor-pointer"
+                  className="px-6 py-4 flex items-center justify-between hover:bg-[#EAF5EF]/50 transition cursor-pointer group"
                 >
-                  <div className="flex items-center space-x-3.5">
-                    <div className="p-2 bg-emerald-100 text-emerald-800 rounded-xl">
-                      <MapPin className="w-5 h-5" />
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-full bg-[#EAF5EF] border border-[#0C3B2E]/15 text-[#0C3B2E] flex items-center justify-center group-hover:bg-[#0C3B2E] group-hover:text-amber-300 transition-colors shrink-0">
+                      <MapPin className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800">Saved Delivery Addresses</p>
-                      <p className="text-xs text-slate-500">Manage hostel, home, or office addresses</p>
+                      <p className="text-sm font-bold text-[#0C3B2E]">
+                        Saved Delivery Addresses
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        Manage hostel, home, or office addresses
+                      </p>
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-slate-400" />
+                  <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-[#0C3B2E] transition-colors" />
                 </Link>
               </div>
             </div>
 
             {/* Notifications & Support */}
-            <div className="bg-white rounded-3xl border border-[#E6E2D8]/80 shadow-card-soft p-6 space-y-4">
+            <div className="bg-white rounded-3xl border border-[#0C3B2E]/10 shadow-2xs p-6 space-y-4">
               <h3 className="text-xs font-bold text-[#0C3B2E] uppercase tracking-wider">
-                Preferences & Support
+                Preferences &amp; Support
               </h3>
 
               <PushNotificationPrompt />
 
               <Link
                 href="/help"
-                className="w-full p-4 rounded-2xl border border-[#E6E2D8] flex items-center justify-between hover:bg-slate-50 transition text-slate-800 cursor-pointer"
+                className="w-full p-4 rounded-2xl border border-[#0C3B2E]/15 bg-[#FAF8F5] flex items-center justify-between hover:bg-[#EAF5EF]/60 hover:border-[#0C3B2E]/25 transition text-slate-800 cursor-pointer group"
               >
-                <div className="flex items-center space-x-3.5">
-                  <div className="p-2 bg-emerald-100 text-emerald-800 rounded-xl">
-                    <HelpCircle className="w-5 h-5" />
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-full bg-[#EAF5EF] border border-[#0C3B2E]/15 text-[#0C3B2E] flex items-center justify-center group-hover:bg-[#0C3B2E] group-hover:text-amber-300 transition-colors shrink-0">
+                    <HelpCircle className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-slate-800">Help & Support</p>
-                    <p className="text-xs text-slate-500">FAQs, customer support, and inquiry desk</p>
+                    <p className="text-sm font-bold text-[#0C3B2E]">
+                      Help &amp; Support
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      FAQs, customer support, and inquiry desk
+                    </p>
                   </div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-slate-400" />
+                <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-[#0C3B2E] transition-colors" />
               </Link>
             </div>
 
@@ -273,18 +290,20 @@ function ChangePhoneInline({
     return (
       <button
         onClick={() => setEditing(true)}
-        className="flex items-center space-x-1.5 mt-1 group cursor-pointer"
+        className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full bg-[#EAF5EF] border border-[#0C3B2E]/15 hover:bg-[#dceee4] transition group cursor-pointer"
       >
-        <Phone className="w-3.5 h-3.5 text-emerald-700" />
-        <span className="text-xs text-emerald-800 font-extrabold">{phone || "Add phone"}</span>
-        <Pencil className="w-3 h-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+        <Phone className="w-3 h-3 text-[#0C3B2E]" />
+        <span className="text-xs text-[#0C3B2E] font-bold">
+          {phone || "Add phone"}
+        </span>
+        <Pencil className="w-3 h-3 text-[#0C3B2E]/60 group-hover:text-[#0C3B2E] transition-colors" />
       </button>
     );
   }
 
   return (
-    <div className="mt-1.5 space-y-1">
-      <div className="flex items-center space-x-1.5">
+    <div className="mt-2 space-y-1">
+      <div className="flex items-center gap-1.5">
         <input
           type="tel"
           value={newPhone}
@@ -292,18 +311,18 @@ function ChangePhoneInline({
           placeholder="Enter new phone"
           autoFocus
           maxLength={13}
-          className="w-36 px-2.5 py-1.5 text-xs font-bold rounded-lg border border-emerald-300 bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="w-36 px-3 py-1.5 text-xs font-semibold rounded-full border border-[#0C3B2E]/25 bg-[#FAF8F5] text-slate-800 focus:outline-none focus:bg-white focus:border-[#0C3B2E]"
         />
         <button
           onClick={handleSave}
           disabled={saving}
-          className="p-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition cursor-pointer disabled:opacity-50"
+          className="w-7 h-7 rounded-full bg-[#0C3B2E] text-white hover:bg-[#145341] flex items-center justify-center transition cursor-pointer disabled:opacity-50"
         >
           <Check className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={handleCancel}
-          className="p-1.5 rounded-lg bg-slate-200 text-slate-600 hover:bg-slate-300 transition cursor-pointer"
+          className="w-7 h-7 rounded-full bg-[#EAF5EF] text-[#0C3B2E] hover:bg-[#dceee4] flex items-center justify-center transition cursor-pointer"
         >
           <X className="w-3.5 h-3.5" />
         </button>
@@ -319,31 +338,37 @@ function SecuritySection({ logout }: { logout: () => Promise<void> }) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   return (
-    <div className="bg-white rounded-3xl border border-[#E6E2D8]/80 shadow-card-soft overflow-hidden">
+    <div className="bg-white rounded-3xl border border-[#0C3B2E]/10 shadow-2xs overflow-hidden">
       {/* Toggle Button */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition cursor-pointer"
+        className="w-full px-6 py-4 flex items-center justify-between hover:bg-[#EAF5EF]/40 transition cursor-pointer"
       >
-        <div className="flex items-center space-x-3.5">
-          <div className="p-2 bg-amber-100 text-amber-700 rounded-xl">
-            <Lock className="w-5 h-5" />
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-full bg-amber-300/35 border border-amber-400/50 text-[#0C3B2E] flex items-center justify-center shrink-0">
+            <Lock className="w-4 h-4" />
           </div>
           <div className="text-left">
-            <p className="text-sm font-bold text-slate-800">Security & Account</p>
-            <p className="text-xs text-slate-500">Password, logout, and account actions</p>
+            <p className="text-sm font-bold text-[#0C3B2E]">
+              Security &amp; Account
+            </p>
+            <p className="text-xs text-slate-500">
+              Password, logout, and account actions
+            </p>
           </div>
         </div>
-        {expanded ? (
-          <ChevronUp className="w-5 h-5 text-slate-400" />
-        ) : (
-          <ChevronDown className="w-5 h-5 text-slate-400" />
-        )}
+        <span className="w-8 h-8 rounded-full bg-[#EAF5EF] text-[#0C3B2E] flex items-center justify-center">
+          {expanded ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
+            <ChevronDown className="w-4 h-4" />
+          )}
+        </span>
       </button>
 
       {/* Collapsible Content */}
       {expanded && (
-        <div className="px-6 pb-6 space-y-5 border-t border-[#E6E2D8]/50 pt-5 animate-in slide-in-from-top-2 duration-200">
+        <div className="px-6 pb-6 space-y-5 border-t border-[#0C3B2E]/10 pt-5 animate-in slide-in-from-top-2 duration-200">
           {/* Change Password Form */}
           <ChangePasswordCard />
 
@@ -351,30 +376,32 @@ function SecuritySection({ logout }: { logout: () => Promise<void> }) {
           {!showLogoutConfirm ? (
             <button
               onClick={() => setShowLogoutConfirm(true)}
-              className="w-full py-3.5 rounded-2xl bg-red-50 text-red-600 font-extrabold text-sm flex items-center justify-center space-x-2 border border-red-200 hover:bg-red-100 transition cursor-pointer shadow-xs"
+              className="w-full py-3.5 rounded-full bg-red-50 text-red-600 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-red-200 hover:bg-red-100 transition cursor-pointer"
             >
-              <LogOut className="w-5 h-5" />
+              <LogOut className="w-4 h-4" />
               <span>Sign Out Account</span>
             </button>
           ) : (
-            <div className="p-4 rounded-2xl bg-red-50 border border-red-300 space-y-3 animate-in fade-in duration-200">
-              <div className="flex items-center space-x-2">
-                <AlertTriangle className="w-5 h-5 text-red-500" />
-                <p className="text-sm font-bold text-red-800">Are you sure you want to sign out?</p>
+            <div className="p-4 rounded-2xl bg-red-50 border border-red-200 space-y-3 animate-in fade-in duration-200">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-600" />
+                <p className="text-sm font-bold text-red-800">
+                  Are you sure you want to sign out?
+                </p>
               </div>
               <p className="text-xs text-red-600">
-                You'll need to log in again to access your orders and saved addresses.
+                You&apos;ll need to log in again to access your orders and saved addresses.
               </p>
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center gap-3">
                 <button
                   onClick={() => logout()}
-                  className="flex-1 py-2.5 rounded-xl bg-red-600 text-white font-bold text-xs hover:bg-red-700 transition cursor-pointer"
+                  className="flex-1 py-2.5 rounded-full bg-red-600 text-white font-bold text-xs hover:bg-red-700 transition cursor-pointer"
                 >
                   Yes, Sign Out
                 </button>
                 <button
                   onClick={() => setShowLogoutConfirm(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-white text-slate-700 font-bold text-xs border border-slate-300 hover:bg-slate-100 transition cursor-pointer"
+                  className="flex-1 py-2.5 rounded-full bg-white text-slate-700 font-bold text-xs border border-slate-300 hover:bg-slate-50 transition cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -393,7 +420,10 @@ function ChangePasswordCard() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [status, setStatus] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -405,7 +435,10 @@ function ChangePasswordCard() {
     }
 
     if (newPassword.length < 6) {
-      setStatus({ type: "error", text: "Password must be at least 6 characters long." });
+      setStatus({
+        type: "error",
+        text: "Password must be at least 6 characters long.",
+      });
       return;
     }
 
@@ -425,7 +458,10 @@ function ChangePasswordCard() {
         setNewPassword("");
         setConfirmPassword("");
       } else {
-        setStatus({ type: "error", text: data.message || "Failed to update password." });
+        setStatus({
+          type: "error",
+          text: data.message || "Failed to update password.",
+        });
       }
     } catch (err: any) {
       setStatus({ type: "error", text: err.message || "Network error." });
@@ -436,17 +472,17 @@ function ChangePasswordCard() {
 
   return (
     <div className="space-y-3">
-      <h4 className="text-xs font-bold text-[#0C3B2E] uppercase tracking-wider flex items-center space-x-2">
-        <ShieldCheck className="w-4 h-4 text-emerald-700" />
+      <h4 className="text-xs font-bold text-[#0C3B2E] uppercase tracking-wider flex items-center gap-2">
+        <ShieldCheck className="w-4 h-4 text-[#0C3B2E]" />
         <span>Change Password</span>
       </h4>
 
       {status && (
         <div
-          className={`p-3 rounded-xl text-xs font-bold ${
+          className={`p-3 rounded-2xl text-xs font-bold ${
             status.type === "success"
-              ? "bg-emerald-50 text-emerald-900 border border-emerald-300"
-              : "bg-red-50 text-red-900 border border-red-300"
+              ? "bg-[#EAF5EF] text-[#0C3B2E] border border-[#0C3B2E]/20"
+              : "bg-red-50 text-red-800 border border-red-200"
           }`}
         >
           {status.text}
@@ -454,40 +490,46 @@ function ChangePasswordCard() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-3 text-xs">
-        <div className="space-y-1">
-          <label className="font-bold text-slate-700 uppercase">Current Password</label>
+        <div className="space-y-1.5">
+          <label className="font-bold text-[#0C3B2E] uppercase">
+            Current Password
+          </label>
           <input
             type="password"
             required
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
             placeholder="Enter current password"
-            className="w-full px-4 py-2.5 rounded-xl border border-[#E6E2D8] bg-slate-50 font-medium focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
+            className="w-full px-4 py-2.5 rounded-xl border border-[#0C3B2E]/15 bg-[#FAF8F5] font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#0C3B2E] transition"
           />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <label className="font-bold text-slate-700 uppercase">New Password</label>
+          <div className="space-y-1.5">
+            <label className="font-bold text-[#0C3B2E] uppercase">
+              New Password
+            </label>
             <input
               type="password"
               required
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Min 6 characters"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#E6E2D8] bg-slate-50 font-medium focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#0C3B2E]/15 bg-[#FAF8F5] font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#0C3B2E] transition"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="font-bold text-slate-700 uppercase">Confirm New Password</label>
+          <div className="space-y-1.5">
+            <label className="font-bold text-[#0C3B2E] uppercase">
+              Confirm New Password
+            </label>
             <input
               type="password"
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Re-enter new password"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#E6E2D8] bg-slate-50 font-medium focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#0C3B2E]/15 bg-[#FAF8F5] font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#0C3B2E] transition"
             />
           </div>
         </div>
@@ -495,7 +537,7 @@ function ChangePasswordCard() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 rounded-xl btn-emerald font-extrabold shadow-sm transition cursor-pointer"
+          className="w-full py-3 rounded-full bg-[#0C3B2E] hover:bg-[#145341] disabled:opacity-60 text-white font-semibold shadow-2xs transition cursor-pointer"
         >
           {loading ? "Updating..." : "Update Password"}
         </button>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import { StoreSettings } from "@/lib/models/StoreSettings";
+import { requireAdminUser } from "@/lib/auth";
 
 export async function GET() {
   try {
@@ -30,14 +31,47 @@ export async function GET() {
 
 export async function PUT(req: Request) {
   try {
+    const admin = await requireAdminUser();
+    if (!admin) {
+      return NextResponse.json({ message: "Unauthorized. Admin required." }, { status: 403 });
+    }
+
     await connectToDatabase();
     const body = await req.json();
+    const allowedFields = new Set([
+      "taxEnabled",
+      "taxPercentage",
+      "packagingEnabled",
+      "packagingChargeType",
+      "packagingFee",
+      "deliveryEnabled",
+      "deliveryFee",
+      "freeDeliveryThreshold",
+      "restaurantName",
+      "restaurantPhone",
+      "restaurantAddress",
+    ]);
+    const update: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(body || {})) {
+      if (allowedFields.has(key)) update[key] = value;
+    }
+
+    if (
+      (typeof update.taxPercentage === "number" && (update.taxPercentage < 0 || update.taxPercentage > 100)) ||
+      (typeof update.packagingFee === "number" && update.packagingFee < 0) ||
+      (typeof update.deliveryFee === "number" && update.deliveryFee < 0) ||
+      (typeof update.freeDeliveryThreshold === "number" && update.freeDeliveryThreshold < 0) ||
+      (update.packagingChargeType !== undefined &&
+        !["whole_order", "per_item"].includes(String(update.packagingChargeType)))
+    ) {
+      return NextResponse.json({ message: "Invalid store settings values" }, { status: 400 });
+    }
 
     let settings = await StoreSettings.findOne();
     if (!settings) {
-      settings = new StoreSettings(body);
+      settings = new StoreSettings(update);
     } else {
-      Object.assign(settings, body);
+      Object.assign(settings, update);
     }
 
     await settings.save();

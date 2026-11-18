@@ -47,6 +47,13 @@ export async function POST(req: Request) {
     if (!categoryId || !name || !description || price === undefined) {
       return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
     }
+    const numericPrice = Number(price);
+    if (!Number.isFinite(numericPrice) || numericPrice < 0) {
+      return NextResponse.json({ message: "Price must be a non-negative number" }, { status: 400 });
+    }
+    if (typeof name !== "string" || name.trim().length < 2 || name.trim().length > 150) {
+      return NextResponse.json({ message: "Menu item name must be between 2 and 150 characters" }, { status: 400 });
+    }
 
     await connectToDatabase();
 
@@ -55,7 +62,7 @@ export async function POST(req: Request) {
       name,
       description,
       imageUrl: imageUrl || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
-      price: Number(price),
+      price: numericPrice,
       available: available !== undefined ? available : true,
     });
 

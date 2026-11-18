@@ -6,7 +6,6 @@ import {
   ArrowLeft,
   MapPin,
   Plus,
-  Trash2,
   Home,
   Briefcase,
   Building,
@@ -87,7 +86,14 @@ export default function SavedAddressesPage() {
   const handleSaveAddress = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!houseNo.trim() || !streetArea.trim() || !landmark.trim() || !pincode.trim() || !city.trim() || !state.trim()) {
+    if (
+      !houseNo.trim() ||
+      !streetArea.trim() ||
+      !landmark.trim() ||
+      !pincode.trim() ||
+      !city.trim() ||
+      !state.trim()
+    ) {
       alert("Please fill in all required address fields.");
       return;
     }
@@ -123,23 +129,35 @@ export default function SavedAddressesPage() {
     }
   };
 
+  const handleDeleteAddress = async (addressId: string) => {
+    if (!window.confirm("Delete this saved address?")) return;
+    try {
+      const res = await fetch(`/api/addresses?id=${encodeURIComponent(addressId)}`, {
+        method: "DELETE",
+      });
+      if (res.ok) await fetchAddresses();
+    } catch (error) {
+      console.error("Failed to delete address:", error);
+    }
+  };
+
   return (
-    <div className="flex-1 flex flex-col pb-44 md:pb-32 bg-[#FAF8F5]">
-      {/* Header Container */}
-      <header className="bg-white border-b border-[#E6E2D8]/80 sticky top-[64px] z-30 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+    <div className="flex-1 flex flex-col pb-44 md:pb-32 bg-[#FAF8F5] text-slate-900 font-sans">
+      {/* Header Container matching Evergreen Botanical Sage & Cream Theme */}
+      <header className="bg-gradient-to-br from-[#F7FBF8] via-[#EFF7F2] to-[#E6F2EB] border-b border-[#0C3B2E]/10 sticky top-20 z-30 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
+          <div className="flex items-center gap-3.5">
             <Link
               href="/profile"
-              className="p-2.5 rounded-2xl bg-white border border-[#E6E2D8] text-[#0C3B2E] hover:bg-slate-50 transition shadow-xs"
+              className="w-10 h-10 rounded-full bg-white border border-[#0C3B2E]/15 text-[#0C3B2E] hover:bg-[#EAF5EF] flex items-center justify-center transition shadow-2xs shrink-0"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4" />
             </Link>
             <div>
-              <h1 className="font-serif text-2xl sm:text-3xl font-extrabold text-[#0C3B2E]">
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#0C3B2E] tracking-tight">
                 Saved Addresses
               </h1>
-              <p className="text-xs text-slate-500 font-medium">
+              <p className="text-xs text-slate-600">
                 Manage home, hostel, or office delivery destinations
               </p>
             </div>
@@ -148,44 +166,44 @@ export default function SavedAddressesPage() {
       </header>
 
       {/* Main Content Container - Max 7xl on desktop */}
-      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {[1, 2, 3].map((n) => (
               <div
                 key={n}
-                className="h-28 bg-white/80 animate-pulse rounded-3xl border border-[#E6E2D8]"
+                className="h-32 bg-white animate-pulse rounded-3xl border border-[#0C3B2E]/10"
               />
             ))}
           </div>
         ) : addresses.length === 0 ? (
-          <div className="text-center py-20 space-y-3 bg-white rounded-3xl border border-[#E6E2D8] max-w-lg mx-auto shadow-card-soft p-8">
-            <div className="w-16 h-16 rounded-full bg-[#EAF5EF] text-[#0C3B2E] flex items-center justify-center mx-auto text-2xl">
+          <div className="text-center py-20 space-y-4 bg-white rounded-3xl border border-[#0C3B2E]/10 max-w-lg mx-auto shadow-2xs p-8">
+            <div className="w-16 h-16 rounded-full bg-[#EAF5EF] border border-[#0C3B2E]/10 text-[#0C3B2E] flex items-center justify-center mx-auto text-2xl">
               📍
             </div>
-            <h3 className="font-serif text-xl font-bold text-[#0C3B2E]">No saved addresses</h3>
-            <p className="text-xs text-slate-500 max-w-xs mx-auto">
+            <h3 className="text-xl font-bold text-[#0C3B2E]">No saved addresses</h3>
+            <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
               Add your home, hostel, or office address for seamless 1-click checkout.
             </p>
             <div className="pt-2">
               <button
                 onClick={() => setShowModal(true)}
-                className="px-6 py-3 rounded-2xl btn-emerald text-xs font-bold shadow-md cursor-pointer"
+                className="px-6 py-3 rounded-full bg-[#0C3B2E] hover:bg-[#145341] text-white text-xs font-semibold shadow-sm transition cursor-pointer"
               >
                 Add Your First Address
               </button>
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {(showAll ? addresses : addresses.slice(0, 1)).map((addr) => (
                 <div
                   key={addr._id}
-                  className="bg-white p-5 rounded-3xl border border-[#E6E2D8]/80 shadow-card-soft flex items-start justify-between space-x-4 hover:shadow-md transition"
+                  className="bg-white p-5 sm:p-6 rounded-3xl border border-[#0C3B2E]/10 shadow-2xs flex items-start justify-between gap-4 hover:shadow-md hover:border-[#0C3B2E]/25 transition-all duration-300"
                 >
-                  <div className="flex items-start space-x-3.5">
-                    <div className="p-3 rounded-2xl bg-[#EAF5EF] text-[#0C3B2E] mt-0.5 shrink-0">
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-11 h-11 rounded-full bg-[#EAF5EF] border border-[#0C3B2E]/15 text-[#0C3B2E] flex items-center justify-center mt-0.5 shrink-0">
                       {addr.title === "Home" ? (
                         <Home className="w-5 h-5" />
                       ) : addr.title === "Work" ? (
@@ -195,13 +213,20 @@ export default function SavedAddressesPage() {
                       )}
                     </div>
                     <div>
-                      <h3 className="font-extrabold text-sm sm:text-base text-[#0C3B2E]">
+                      <span className="inline-block px-3 py-0.5 rounded-full bg-[#EAF5EF] text-[#0C3B2E] text-xs font-bold border border-[#0C3B2E]/15">
                         {addr.title}
-                      </h3>
-                      <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
+                      </span>
+                      <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed font-medium">
                         {addr.address}
                       </p>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteAddress(addr._id)}
+                      className="px-3 py-2 rounded-full border border-red-200 text-red-600 text-xs font-bold hover:bg-red-50 transition shrink-0"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               ))}
@@ -212,10 +237,18 @@ export default function SavedAddressesPage() {
                 <button
                   type="button"
                   onClick={() => setShowAll(!showAll)}
-                  className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-2xl bg-white border border-[#E6E2D8] text-[#0C3B2E] font-bold text-xs shadow-xs hover:bg-slate-50 transition cursor-pointer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-[#0C3B2E]/15 text-[#0C3B2E] font-semibold text-xs shadow-2xs hover:bg-[#EAF5EF] transition cursor-pointer"
                 >
-                  <span>{showAll ? "Show Less" : `View All Saved Addresses (${addresses.length})`}</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showAll ? "rotate-180" : ""}`} />
+                  <span>
+                    {showAll
+                      ? "Show Less"
+                      : `View All Saved Addresses (${addresses.length})`}
+                  </span>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform duration-200 ${
+                      showAll ? "rotate-180" : ""
+                    }`}
+                  />
                 </button>
               </div>
             )}
@@ -223,31 +256,31 @@ export default function SavedAddressesPage() {
         )}
       </main>
 
-      {/* Swiggy/Zomato Style Floating Sticky "+ Add New Address" Button Bar */}
-      <div className="fixed bottom-[68px] sm:bottom-6 left-0 right-0 z-30 px-4 flex justify-center pointer-events-none">
-        <div className="w-full max-w-lg pointer-events-auto p-2 bg-white/90 backdrop-blur-md rounded-2xl border border-[#E6E2D8] shadow-2xl">
+      {/* Floating Sticky "+ Add New Address" Button Bar */}
+      <div className="fixed bottom-[76px] sm:bottom-6 left-0 right-0 z-30 px-4 flex justify-center pointer-events-none">
+        <div className="w-full max-w-md pointer-events-auto p-2 bg-white/95 backdrop-blur-md rounded-full border border-[#0C3B2E]/15 shadow-xl">
           <button
             onClick={() => setShowModal(true)}
-            className="w-full py-3.5 rounded-xl btn-emerald flex items-center justify-center space-x-2 text-sm sm:text-base font-extrabold shadow-lg hover:scale-[1.01] active:scale-[0.99] transition cursor-pointer"
+            className="w-full py-3.5 px-6 rounded-full bg-[#0C3B2E] hover:bg-[#145341] text-white flex items-center justify-center gap-2 text-xs sm:text-sm font-bold shadow-sm hover:scale-[1.01] active:scale-[0.99] transition cursor-pointer"
           >
-            <Plus className="w-5 h-5" />
-            <span>+ Add New Address</span>
+            <Plus className="w-4 h-4 text-amber-300" />
+            <span>Add New Address</span>
           </button>
         </div>
       </div>
 
       {/* Structured Add Address Modal with Pinned Save Button */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-[#E6E2D8] animate-scaleIn max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-50 bg-[#0C3B2E]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-[#0C3B2E]/15 animate-scaleIn max-h-[90vh] flex flex-col">
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-[#E6E2D8]/60 pb-3 shrink-0">
-              <h3 className="font-serif text-xl font-bold text-[#0C3B2E]">Add New Address</h3>
+            <div className="flex items-center justify-between border-b border-[#0C3B2E]/10 pb-3.5 shrink-0">
+              <h3 className="text-xl font-bold text-[#0C3B2E]">Add New Address</h3>
               <button
                 onClick={() => setShowModal(false)}
-                className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                className="w-8 h-8 rounded-full text-slate-400 hover:text-[#0C3B2E] hover:bg-[#EAF5EF] flex items-center justify-center transition cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -257,19 +290,19 @@ export default function SavedAddressesPage() {
               <div className="flex-1 overflow-y-auto space-y-4 pr-1 pb-4 no-scrollbar">
                 {/* Address Title */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#0C3B2E] uppercase">
+                  <label className="text-xs font-bold text-[#0C3B2E] uppercase tracking-wider">
                     Address Tag
                   </label>
-                  <div className="flex space-x-2">
+                  <div className="flex gap-2">
                     {["Home", "Work", "Hostel", "Other"].map((t) => (
                       <button
                         key={t}
                         type="button"
                         onClick={() => setTitle(t)}
-                        className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                        className={`flex-1 py-2.5 rounded-full text-xs font-semibold transition cursor-pointer ${
                           title === t
-                            ? "bg-[#0C3B2E] text-white shadow-sm"
-                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                            ? "bg-[#0C3B2E] text-white shadow-2xs"
+                            : "bg-[#EAF5EF] text-[#0C3B2E] hover:bg-[#dceee4]"
                         }`}
                       >
                         {t}
@@ -282,8 +315,8 @@ export default function SavedAddressesPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Field 1: House / Flat Number * */}
                   <div className="space-y-1.5 sm:col-span-2">
-                    <label className="text-xs font-bold text-[#0C3B2E] uppercase flex items-center space-x-1.5">
-                      <Building className="w-4 h-4 text-slate-400" />
+                    <label className="text-xs font-bold text-[#0C3B2E] uppercase tracking-wider flex items-center gap-1.5">
+                      <Building className="w-3.5 h-3.5 text-[#0C3B2E]/70" />
                       <span>House / Flat Number *</span>
                     </label>
                     <input
@@ -292,14 +325,14 @@ export default function SavedAddressesPage() {
                       value={houseNo}
                       onChange={(e) => setHouseNo(e.target.value)}
                       placeholder="e.g. Room 302, Hostel B or Flat 12A"
-                      className="w-full px-4 py-3 rounded-xl border border-[#E6E2D8] bg-slate-50 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
+                      className="w-full px-4 py-3 rounded-xl border border-[#0C3B2E]/15 bg-[#FAF8F5] text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#0C3B2E] transition"
                     />
                   </div>
 
                   {/* Field 2: Street / Area * */}
                   <div className="space-y-1.5 sm:col-span-2">
-                    <label className="text-xs font-bold text-[#0C3B2E] uppercase flex items-center space-x-1.5">
-                      <Navigation className="w-4 h-4 text-slate-400" />
+                    <label className="text-xs font-bold text-[#0C3B2E] uppercase tracking-wider flex items-center gap-1.5">
+                      <Navigation className="w-3.5 h-3.5 text-[#0C3B2E]/70" />
                       <span>Street / Area *</span>
                     </label>
                     <input
@@ -308,14 +341,14 @@ export default function SavedAddressesPage() {
                       value={streetArea}
                       onChange={(e) => setStreetArea(e.target.value)}
                       placeholder="e.g. Kalasalingam University Campus or Main Road"
-                      className="w-full px-4 py-3 rounded-xl border border-[#E6E2D8] bg-slate-50 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
+                      className="w-full px-4 py-3 rounded-xl border border-[#0C3B2E]/15 bg-[#FAF8F5] text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#0C3B2E] transition"
                     />
                   </div>
 
                   {/* Field 3: Landmark * */}
                   <div className="space-y-1.5 sm:col-span-2">
-                    <label className="text-xs font-bold text-[#0C3B2E] uppercase flex items-center space-x-1.5">
-                      <MapPin className="w-4 h-4 text-slate-400" />
+                    <label className="text-xs font-bold text-[#0C3B2E] uppercase tracking-wider flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-[#0C3B2E]/70" />
                       <span>Landmark *</span>
                     </label>
                     <input
@@ -324,13 +357,13 @@ export default function SavedAddressesPage() {
                       value={landmark}
                       onChange={(e) => setLandmark(e.target.value)}
                       placeholder="e.g. Near Central Library / Opp. Admin Block"
-                      className="w-full px-4 py-3 rounded-xl border border-[#E6E2D8] bg-slate-50 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
+                      className="w-full px-4 py-3 rounded-xl border border-[#0C3B2E]/15 bg-[#FAF8F5] text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#0C3B2E] transition"
                     />
                   </div>
 
                   {/* Pincode & City */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#0C3B2E] uppercase">
+                    <label className="text-xs font-bold text-[#0C3B2E] uppercase tracking-wider">
                       Pincode *
                     </label>
                     <div className="relative">
@@ -341,10 +374,10 @@ export default function SavedAddressesPage() {
                         value={pincode}
                         onChange={(e) => handlePincodeChange(e.target.value)}
                         placeholder="e.g. 626126"
-                        className="w-full px-4 py-3 rounded-xl border border-[#E6E2D8] bg-slate-50 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
+                        className="w-full px-4 py-3 rounded-xl border border-[#0C3B2E]/15 bg-[#FAF8F5] text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#0C3B2E] transition"
                       />
                       {pincodeLoading && (
-                        <span className="absolute right-3 top-3 text-[10px] text-emerald-600 font-bold animate-pulse">
+                        <span className="absolute right-3 top-3 text-[10px] text-[#0C3B2E] font-bold animate-pulse">
                           Fetching...
                         </span>
                       )}
@@ -352,7 +385,7 @@ export default function SavedAddressesPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#0C3B2E] uppercase">
+                    <label className="text-xs font-bold text-[#0C3B2E] uppercase tracking-wider">
                       City *
                     </label>
                     <input
@@ -361,13 +394,13 @@ export default function SavedAddressesPage() {
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
                       placeholder="e.g. Krishnankoil"
-                      className="w-full px-4 py-3 rounded-xl border border-[#E6E2D8] bg-slate-50 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
+                      className="w-full px-4 py-3 rounded-xl border border-[#0C3B2E]/15 bg-[#FAF8F5] text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#0C3B2E] transition"
                     />
                   </div>
 
                   {/* State */}
                   <div className="space-y-1.5 sm:col-span-2">
-                    <label className="text-xs font-bold text-[#0C3B2E] uppercase">
+                    <label className="text-xs font-bold text-[#0C3B2E] uppercase tracking-wider">
                       State *
                     </label>
                     <input
@@ -376,25 +409,25 @@ export default function SavedAddressesPage() {
                       value={state}
                       onChange={(e) => setState(e.target.value)}
                       placeholder="e.g. Tamil Nadu"
-                      className="w-full px-4 py-3 rounded-xl border border-[#E6E2D8] bg-slate-50 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]"
+                      className="w-full px-4 py-3 rounded-xl border border-[#0C3B2E]/15 bg-[#FAF8F5] text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#0C3B2E] transition"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Pinned Sticky Save Button Footer inside Modal (Swiggy/Zomato style) */}
-              <div className="pt-3 border-t border-[#E6E2D8] flex space-x-3 bg-white shrink-0">
+              {/* Pinned Sticky Save Button Footer inside Modal */}
+              <div className="pt-3.5 border-t border-[#0C3B2E]/10 flex gap-3 bg-white shrink-0">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 py-3.5 rounded-2xl bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200 transition cursor-pointer"
+                  className="flex-1 py-3 rounded-full bg-[#EAF5EF] text-[#0C3B2E] text-xs font-semibold hover:bg-[#dceee4] transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 py-3.5 rounded-2xl btn-emerald text-xs font-extrabold shadow-md cursor-pointer"
+                  className="flex-1 py-3 rounded-full bg-[#0C3B2E] hover:bg-[#145341] disabled:opacity-60 text-white text-xs font-bold shadow-2xs transition cursor-pointer"
                 >
                   {saving ? "Saving..." : "SAVE ADDRESS"}
                 </button>

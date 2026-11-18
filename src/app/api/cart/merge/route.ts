@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import { Cart } from "@/lib/models/Cart";
 import { requireAuthUser } from "@/lib/auth";
+import { normalizeCartItems } from "@/lib/pricing";
 
 export async function POST(req: Request) {
   try {
@@ -18,36 +19,34 @@ export async function POST(req: Request) {
     await connectToDatabase();
 
     let cart = await Cart.findOne({ userId: user._id });
+    const existingItems = cart
+      ? cart.items.map((item: any) => ({
+          menuItemId: item.menuItemId.toString(),
+          quantity: item.quantity,
+        }))
+      : [];
+    const mergeItems = [...existingItems, ...guestItems];
+    let normalized;
+    try {
+      normalized = await normalizeCartItems(mergeItems);
+    } catch (error: any) {
+      return NextResponse.json({ message: error.message }, { status: 400 });
+    }
+
+    const formattedDbItems = normalized.items.map((item) => ({
+      menuItemId: item.menuItemId,
+      quantity: item.quantity,
+    }));
+
     if (!cart) {
       cart = await Cart.create({
         userId: user._id,
-        items: guestItems.map((item: any) => ({
-          menuItemId: item.menuItemId,
-          quantity: item.quantity,
-        })),
-        total: guestItems.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0),
+        items: formattedDbItems,
+        total: normalized.subtotal,
       });
     } else {
-      const existingItemsMap = new Map();
-      cart.items.forEach((item: any) => {
-        existingItemsMap.set(item.menuItemId.toString(), item.quantity);
-      });
-
-      guestItems.forEach((gItem: any) => {
-        const id = gItem.menuItemId;
-        if (existingItemsMap.has(id)) {
-          existingItemsMap.set(id, existingItemsMap.get(id) + gItem.quantity);
-        } else {
-          existingItemsMap.set(id, gItem.quantity);
-        }
-      });
-
-      const mergedItems = Array.from(existingItemsMap.entries()).map(([menuItemId, quantity]) => ({
-        menuItemId,
-        quantity,
-      }));
-
-      cart.items = mergedItems as any;
+      cart.items = formattedDbItems as any;
+      cart.total = normalized.subtotal;
       await cart.save();
     }
 

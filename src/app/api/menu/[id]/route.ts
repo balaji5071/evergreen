@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import { MenuItem } from "@/lib/models/MenuItem";
-import { requireStaffOrAdminUser } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 
 export async function GET(
   req: Request,
@@ -25,7 +25,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await requireStaffOrAdminUser();
+    const user = await requirePermission("menu");
     if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }
@@ -33,6 +33,12 @@ export async function PUT(
     const { id } = await params;
     const body = await req.json();
     const { name, price, description, categoryId, imageUrl, available } = body;
+    if (price !== undefined) {
+      const numericPrice = Number(price);
+      if (!Number.isFinite(numericPrice) || numericPrice < 0) {
+        return NextResponse.json({ message: "Price must be a non-negative number" }, { status: 400 });
+      }
+    }
 
     await connectToDatabase();
 
@@ -64,7 +70,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await requireStaffOrAdminUser();
+    const user = await requirePermission("menu");
     if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }

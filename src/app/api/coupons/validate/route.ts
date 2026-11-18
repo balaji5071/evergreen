@@ -1,15 +1,23 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import { Coupon } from "@/lib/models/Coupon";
+import { requireAuthUser } from "@/lib/auth";
+import { getServerCart } from "@/lib/pricing";
 
 export async function POST(req: Request) {
   try {
-    const { code, subtotal = 0 } = await req.json();
+    const user = await requireAuthUser();
+    if (!user) {
+      return NextResponse.json({ message: "Authentication required" }, { status: 401 });
+    }
+
+    const { code } = await req.json();
     if (!code) {
       return NextResponse.json({ message: "Coupon code is required" }, { status: 400 });
     }
 
     await connectToDatabase();
+    const { subtotal } = await getServerCart(user._id);
     const coupon = await Coupon.findOne({
       code: code.toUpperCase().trim(),
       active: true,

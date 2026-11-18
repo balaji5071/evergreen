@@ -17,7 +17,7 @@ const JWT_SECRET = requireEnv("JWT_SECRET");
 export interface JWTPayload {
   userId: string;
   email: string;
-  role: "Customer" | "Admin" | "Staff";
+  role: "Customer" | "Admin" | "Staff" | "Delivery";
   name: string;
   permissions?: string[];
 }
@@ -73,7 +73,18 @@ export async function requireAdminUser(): Promise<IUser | null> {
 
 export async function requireStaffOrAdminUser(): Promise<IUser | null> {
   const user = await requireAuthUser();
-  if (!user || (user.role !== "Staff" && user.role !== "Admin")) {
+  if (!user || (user.role !== "Staff" && user.role !== "Admin" && user.role !== "Delivery")) {
+    return null;
+  }
+  return user;
+}
+
+export async function requirePermission(permission: string): Promise<IUser | null> {
+  const user = await requireAuthUser();
+  if (!user) return null;
+  if (user.role === "Admin") return user;
+  if (user.role !== "Staff") return null;
+  if (!Array.isArray(user.permissions) || !user.permissions.includes(permission)) {
     return null;
   }
   return user;

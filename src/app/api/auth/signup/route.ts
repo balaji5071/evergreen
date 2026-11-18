@@ -17,7 +17,18 @@ export async function POST(req: Request) {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPhone = phone.trim();
     const cleanName = name.trim();
-
+    if (cleanName.length < 2 || cleanName.length > 100) {
+      return NextResponse.json({ message: "Name must be between 2 and 100 characters." }, { status: 400 });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      return NextResponse.json({ message: "Please enter a valid email address." }, { status: 400 });
+    }
+    if (!/^[0-9+\s-]{10,20}$/.test(cleanPhone)) {
+      return NextResponse.json({ message: "Please enter a valid phone number." }, { status: 400 });
+    }
+    if (typeof password !== "string" || password.length < 8 || password.length > 128) {
+      return NextResponse.json({ message: "Password must be between 8 and 128 characters." }, { status: 400 });
+    }
     await connectToDatabase();
 
     // Check if user already exists with email OR phone
